@@ -12,6 +12,9 @@ struct AnnouncementDetailsIOSView: View {
     @State private var openingChat = false
     @State private var chatError: String?
     @State private var openedChat: IOSChatSummary?
+    @StateObject private var moderation = IOSModerationViewModel()
+    @State private var showReportReasons = false
+    @State private var showBlockConfirmation = false
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -133,6 +136,54 @@ struct AnnouncementDetailsIOSView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
+
+                    if !isOwnAnnouncement {
+                        Divider()
+
+                        HStack(spacing: 12) {
+                            Button {
+                                showReportReasons = true
+                            } label: {
+                                Label(
+                                    "Пожаловаться",
+                                    systemImage: "exclamationmark.triangle"
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                            .disabled(moderation.isWorking)
+
+                            Button(role: .destructive) {
+                                showBlockConfirmation = true
+                            } label: {
+                                Label(
+                                    "Заблокировать",
+                                    systemImage: "person.crop.circle.badge.xmark"
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(moderation.isWorking)
+                        }
+
+                        if moderation.isWorking {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        if let message = moderation.message {
+                            Text(message)
+                                .font(.footnote)
+                                .foregroundStyle(.green)
+                        }
+
+                        if let error = moderation.errorMessage {
+                            Text(error)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
                 .padding(16)
             }
@@ -157,6 +208,71 @@ struct AnnouncementDetailsIOSView: View {
         .sheet(item: $openedChat) { chat in
             ChatConversationIOSView(chat: chat)
         }
+        .confirmationDialog(
+            "Причина жалобы",
+            isPresented: $showReportReasons,
+            titleVisibility: .visible
+        ) {
+            Button("Запрещённый контент") {
+                submitReport(
+                    reason: "PROHIBITED_CONTENT"
+                )
+            }
+
+            Button("Мошенничество") {
+                submitReport(
+                    reason: "FRAUD"
+                )
+            }
+
+            Button("Оскорбления или угрозы") {
+                submitReport(
+                    reason: "HARASSMENT"
+                )
+            }
+
+            Button("Спам") {
+                submitReport(
+                    reason: "SPAM"
+                )
+            }
+
+            Button("Другое") {
+                submitReport(
+                    reason: "OTHER"
+                )
+            }
+
+            Button(
+                "Отмена",
+                role: .cancel
+            ) {
+            }
+        }
+        .confirmationDialog(
+            "Заблокировать продавца?",
+            isPresented: $showBlockConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(
+                "Заблокировать",
+                role: .destructive
+            ) {
+                moderation.block(
+                    userId: item.authorId
+                )
+            }
+
+            Button(
+                "Отмена",
+                role: .cancel
+            ) {
+            }
+        } message: {
+            Text(
+                "Его объявления и чаты будут скрыты для вас."
+            )
+        }
         .alert("Заказ оформлен", isPresented: $orderPlaced) {
             Button("OK") {
                 dismiss()
@@ -166,6 +282,16 @@ struct AnnouncementDetailsIOSView: View {
         }
     }
 
+
+    private func submitReport(
+        reason: String
+    ) {
+        moderation.report(
+            reportedUserId: item.authorId,
+            announcementId: item.id,
+            reason: reason
+        )
+    }
 
     private func openSellerChat() {
         guard let buyerId = Auth.auth().currentUser?.uid else {
