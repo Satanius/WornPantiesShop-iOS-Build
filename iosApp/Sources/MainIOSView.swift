@@ -133,6 +133,10 @@ final class MainIOSViewModel: ObservableObject {
         loadProfile()
     }
 
+    func setAvatarFileId(_ fileId: String) {
+        avatarFileId = fileId
+    }
+
     private func loadProfile() {
         guard let uid = Auth.auth().currentUser?.uid else {
             loading = false
@@ -459,6 +463,9 @@ struct MainIOSView: View {
             ProfileIOSView(
                 country: viewModel.country ?? "UA",
                 avatarFileId: viewModel.avatarFileId,
+                onAvatarChanged: { fileId in
+                    viewModel.setAvatarFileId(fileId)
+                },
                 onLogout: {
                     showProfile = false
                     onLogout()
@@ -655,6 +662,7 @@ private struct AnnouncementRow: View {
 private struct ProfileIOSView: View {
     let country: String
     let avatarFileId: String?
+    let onAvatarChanged: (String) -> Void
     let onLogout: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -663,6 +671,27 @@ private struct ProfileIOSView: View {
     @State private var showMyListings = false
     @State private var showBlockedUsers = false
     @State private var showSubmittedReports = false
+    @State private var showRules = false
+    @State private var showFeedback = false
+    @State private var showAvatarPicker = false
+    @State private var uploadingAvatar = false
+    @State private var avatarError: String?
+    @State private var currentAvatarFileId: String?
+
+    init(
+        country: String,
+        avatarFileId: String?,
+        onAvatarChanged: @escaping (String) -> Void,
+        onLogout: @escaping () -> Void
+    ) {
+        self.country = country
+        self.avatarFileId = avatarFileId
+        self.onAvatarChanged = onAvatarChanged
+        self.onLogout = onLogout
+        _currentAvatarFileId = State(
+            initialValue: avatarFileId
+        )
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -673,16 +702,46 @@ private struct ProfileIOSView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 18) {
-                if let avatarFileId {
-                    WorkerPhotoView(
-                        fileId: avatarFileId,
-                        cornerRadius: 48
-                    )
-                    .frame(width: 96, height: 96)
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .font(.system(size: 92))
-                        .foregroundStyle(.secondary)
+                Button {
+                    if !uploadingAvatar {
+                        showAvatarPicker = true
+                    }
+                } label: {
+                    ZStack {
+                        if let currentAvatarFileId {
+                            WorkerPhotoView(
+                                fileId: currentAvatarFileId,
+                                cornerRadius: 48
+                            )
+                            .frame(width: 96, height: 96)
+                        } else {
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.system(size: 92))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if uploadingAvatar {
+                            Circle()
+                                .fill(Color.black.opacity(0.55))
+                                .frame(width: 96, height: 96)
+
+                            ProgressView()
+                        } else {
+                            Image(systemName: "camera.fill")
+                                .font(.caption)
+                                .padding(8)
+                                .background(Color.black.opacity(0.75))
+                                .clipShape(Circle())
+                                .offset(x: 34, y: 34)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if let avatarError {
+                    Text(avatarError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
                 }
 
                 Text(Auth.auth().currentUser?.email ?? "Пользователь")
@@ -719,6 +778,30 @@ private struct ProfileIOSView: View {
                         Label(
                             "Мои покупки",
                             systemImage: "bag"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(accentPink)
+
+                    Button {
+                        showRules = true
+                    } label: {
+                        Label(
+                            "Правила сервиса",
+                            systemImage: "exclamationmark.triangle"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(accentPink)
+
+                    Button {
+                        showFeedback = true
+                    } label: {
+                        Label(
+                            "Предложения и обратная связь",
+                            systemImage: "text.bubble"
                         )
                         .frame(maxWidth: .infinity)
                     }
@@ -786,6 +869,41 @@ private struct ProfileIOSView: View {
         }
         .sheet(isPresented: $showSubmittedReports) {
             SubmittedReportsIOSView()
+        }
+        .sheet(isPresented: $showRules) {
+            IOSDisclaimerRulesView(
+                requireAcceptance: false,
+                saving: false,
+                errorMessage: nil,
+                onAccept: nil,
+                onClose: {
+                    showRules = false
+                }
+            )
+        }
+        .sheet(isPresented: $showFeedback) {
+            IOSFeedbackView()
+        }
+        .sheet(isPresented: $showAvatarPicker) {
+            IOSProfilePhotoPicker { data in
+                showAvatarPicker = false
+                uploadingAvatar = true
+                avatarError = nil
+
+                uploadIOSProfileAvatar(data) { result in
+                    DispatchQueue.main.async {
+                        uploadingAvatar = false
+
+                        switch result {
+                        case .success(let fileId):
+                            currentAvatarFileId = fileId
+                            onAvatarChanged(fileId)
+                        case .failure(let error):
+                            avatarError = error.localizedDescription
+                        }
+                    }
+                }
+            }
         }
     }
 }
