@@ -60,7 +60,7 @@ private final class ListingEditorModel: ObservableObject {
         guard !saving else { return }
         let available = max(0, 5 - photos.count)
         guard available > 0 else {
-            errorMessage = "Можно добавить максимум 5 фото."
+            errorMessage = iosT(iosCurrentLanguage(), "ADD_MAXIMUM_5_PHOTOS")
             return
         }
 
@@ -70,7 +70,7 @@ private final class ListingEditorModel: ObservableObject {
         }
 
         photos.append(contentsOf: newPhotos)
-        errorMessage = items.count > available ? "Максимум — 5 фото." : nil
+        errorMessage = items.count > available ? iosT(iosCurrentLanguage(), "MAXIMUM_5_PHOTOS") : nil
     }
 
     func removePhoto(_ id: UUID) {
@@ -82,23 +82,23 @@ private final class ListingEditorModel: ObservableObject {
         let cleanDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !cleanTitle.isEmpty else {
-            errorMessage = "Введите название."
+            errorMessage = iosT(iosCurrentLanguage(), "ENTER_A_TITLE")
             return
         }
         guard let parsedPrice = Int(price), parsedPrice > 0 else {
-            errorMessage = "Введите корректную цену."
+            errorMessage = iosT(iosCurrentLanguage(), "ENTER_A_VALID_PRICE")
             return
         }
         guard let parsedAge = Int(age), parsedAge >= 18 else {
-            errorMessage = "Возраст должен быть не меньше 18 лет."
+            errorMessage = iosT(iosCurrentLanguage(), "AGE_MUST_BE_AT_LEAST_18")
             return
         }
         guard let parsedDays = Int(daysWorn), parsedDays >= 0 else {
-            errorMessage = "Введите корректное количество дней."
+            errorMessage = iosT(iosCurrentLanguage(), "ENTER_A_VALID_NUMBER_OF_DAYS")
             return
         }
         guard !deliveryServices.isEmpty else {
-            errorMessage = "Выберите хотя бы одну службу доставки."
+            errorMessage = iosT(iosCurrentLanguage(), "SELECT_AT_LEAST_ONE_DELIVERY_SERVICE")
             return
         }
 
@@ -134,29 +134,29 @@ private final class ListingEditorModel: ObservableObject {
         }
 
         guard let uid = Auth.auth().currentUser?.uid else {
-            errorMessage = "Сначала войдите в аккаунт."
+            errorMessage = iosT(iosCurrentLanguage(), "PLEASE_SIGN_IN_FIRST")
             return
         }
         guard (1...5).contains(photos.count) else {
-            errorMessage = "Нужно добавить от 1 до 5 фото."
+            errorMessage = iosT(iosCurrentLanguage(), "NEED_1_TO_5_PHOTOS")
             return
         }
 
         let exif = photos.compactMap { listingExif($0.data) }
         guard exif.count == photos.count else {
-            errorMessage = "Одно или несколько фото не содержат нужные EXIF-данные камеры."
+            errorMessage = iosT(iosCurrentLanguage(), "PHOTOS_MISSING_REQUIRED_EXIF")
             return
         }
 
         let fingerprints = Set(exif.map { $0 })
         guard fingerprints.count == 1, let fingerprint = fingerprints.first else {
-            errorMessage = "Все фото должны быть сделаны одной камерой."
+            errorMessage = iosT(iosCurrentLanguage(), "ALL_PHOTOS_SAME_CAMERA")
             return
         }
 
         let jpegData = photos.compactMap { listingJPEG($0.data) }
         guard jpegData.count == photos.count else {
-            errorMessage = "Не удалось подготовить одно или несколько фото до 400 КБ."
+            errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_PHOTOS_400KB")
             return
         }
 
@@ -205,11 +205,16 @@ struct AddAnnouncementIOSView: View {
 
     @StateObject private var model = ListingEditorModel()
     @State private var showPhotos = false
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         ListingEditorForm(
-            title: "Новое объявление",
+            title: iosT(language, "NEW_LISTING"),
             model: model,
             showPhotos: $showPhotos,
             onCancel: { dismiss() },
@@ -238,7 +243,12 @@ struct EditAnnouncementIOSView: View {
 
     @StateObject private var model: ListingEditorModel
     @State private var unusedPhotoSheet = false
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     init(announcement: IOSAnnouncement, onSaved: @escaping () -> Void) {
         self.announcement = announcement
@@ -248,7 +258,7 @@ struct EditAnnouncementIOSView: View {
 
     var body: some View {
         ListingEditorForm(
-            title: "Редактирование",
+            title: iosT(language, "EDITING"),
             model: model,
             showPhotos: $unusedPhotoSheet,
             onCancel: { dismiss() },
@@ -271,25 +281,30 @@ private struct ListingEditorForm: View {
     @Binding var showPhotos: Bool
     let onCancel: () -> Void
     let onSave: () -> Void
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    ListingTextField(title: "Название", text: $model.title)
-                    ListingTextField(title: "Описание", text: $model.description)
-                    ListingTextField(title: "Цена", text: $model.price, number: true)
-                    ListingTextField(title: "Возраст модели", text: $model.age, number: true)
-                    ListingTextField(title: "Дней носили", text: $model.daysWorn, number: true)
+                    ListingTextField(title: iosT(language, "TITLE"), text: $model.title)
+                    ListingTextField(title: iosT(language, "DESCRIPTION"), text: $model.description)
+                    ListingTextField(title: iosT(language, "PRICE"), text: $model.price, number: true)
+                    ListingTextField(title: iosT(language, "MODEL_AGE"), text: $model.age, number: true)
+                    ListingTextField(title: iosT(language, "DAYS_WORN"), text: $model.daysWorn, number: true)
 
-                    ListingPicker(title: "Тип", value: $model.type, values: listingTypes)
-                    ListingPicker(title: "Размер", value: $model.size, values: listingSizes)
-                    ListingPicker(title: "Цвет", value: $model.color, values: listingColors)
+                    ListingPicker(title: iosT(language, "TYPE"), value: $model.type, values: listingTypes)
+                    ListingPicker(title: iosT(language, "SIZE"), value: $model.size, values: listingSizes)
+                    ListingPicker(title: iosT(language, "COLOR"), value: $model.color, values: listingColors)
 
-                    Toggle("Девственница", isOn: $model.isVirgin)
+                    Toggle(iosT(language, "VIRGIN"), isOn: $model.isVirgin)
                         .tint(.pink)
 
-                    Text("Могу отправить через")
+                    Text(iosT(language, "I_CAN_SHIP_VIA"))
                         .font(.headline)
                         .foregroundStyle(.pink)
 
@@ -311,15 +326,15 @@ private struct ListingEditorForm: View {
                     }
 
                     if model.isEditing {
-                        Text("Фото при редактировании остаются прежними, как в Android-версии.")
+                        Text(iosT(language, "EDIT_PHOTOS_UNCHANGED"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else {
                         HStack {
-                            Text("Фото: \(model.photos.count) / 5")
+                            Text(iosT(language, "PHOTOS_COUNT", String(model.photos.count)))
                                 .font(.headline)
                             Spacer()
-                            Button("Добавить фото") {
+                            Button(iosT(language, "ADD_PHOTO")) {
                                 showPhotos = true
                             }
                             .disabled(model.saving || model.photos.count >= 5)
@@ -348,7 +363,7 @@ private struct ListingEditorForm: View {
                             }
                         }
 
-                        Text("Нужно 1–5 фото. Все фото должны содержать EXIF и быть сделаны одной камерой.")
+                        Text(iosT(language, "PHOTO_EXIF_REQUIREMENTS"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -364,7 +379,7 @@ private struct ListingEditorForm: View {
                             if model.saving {
                                 ProgressView().tint(.black)
                             } else {
-                                Text(model.isEditing ? "Сохранить" : "Опубликовать")
+                                Text(model.isEditing ? iosT(language, "SAVE") : iosT(language, "PUBLISH"))
                                     .fontWeight(.bold)
                             }
                         }
@@ -383,7 +398,7 @@ private struct ListingEditorForm: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Отмена", action: onCancel)
+                    Button(iosT(language, "CANCEL"), action: onCancel)
                         .disabled(model.saving)
                 }
             }
@@ -413,13 +428,21 @@ private struct ListingPicker: View {
     let title: String
     @Binding var value: String
     let values: [String]
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         HStack {
             Text(title).foregroundStyle(.secondary)
             Spacer()
             Picker(title, selection: $value) {
-                ForEach(values, id: \.self) { Text($0).tag($0) }
+                ForEach(values, id: \.self) { rawValue in
+                    Text(listingOptionTitle(rawValue, language: language))
+                        .tag(rawValue)
+                }
             }
             .pickerStyle(.menu)
         }
@@ -446,7 +469,7 @@ private final class MyListingsIOSViewModel: ObservableObject {
     func start() {
         stop()
         guard let uid = Auth.auth().currentUser?.uid else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -483,7 +506,7 @@ private final class MyListingsIOSViewModel: ObservableObject {
             let uid = Auth.auth().currentUser?.uid,
             uid == item.authorId
         else {
-            errorMessage = "Можно удалить только своё объявление."
+            errorMessage = iosT(iosCurrentLanguage(), "ONLY_OWN_LISTING_CAN_BE_DELETED")
             return
         }
 
@@ -514,7 +537,12 @@ struct MyListingsIOSView: View {
     @State private var editing: IOSAnnouncement?
     @State private var deleting: IOSAnnouncement?
     @State private var boosting: IOSAnnouncement?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         NavigationView {
@@ -524,7 +552,7 @@ struct MyListingsIOSView: View {
                         .foregroundStyle(.red)
                         .padding()
                 } else if model.items.isEmpty {
-                    Text("У вас пока нет объявлений.")
+                    Text(iosT(language, "YOU_DON_T_HAVE_ANY_LISTINGS_YET"))
                         .foregroundStyle(.secondary)
                 } else {
                     List(model.items) { item in
@@ -535,7 +563,7 @@ struct MyListingsIOSView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(item.title.isEmpty ? "Без названия" : item.title)
+                                Text(item.title.isEmpty ? iosT(language, "UNTITLED") : item.title)
                                     .foregroundStyle(.white)
                                     .lineLimit(1)
 
@@ -581,11 +609,11 @@ struct MyListingsIOSView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Мои объявления")
+            .navigationTitle(iosT(language, "MY_LISTINGS"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") { dismiss() }
+                    Button(iosT(language, "CLOSE")) { dismiss() }
                 }
             }
         }
@@ -600,19 +628,19 @@ struct MyListingsIOSView: View {
         }
         .alert(item: $deleting) { item in
             Alert(
-                title: Text("Удалить объявление?"),
+                title: Text(iosT(language, "DELETE_LISTING")),
                 message: Text(
                     item.title.isEmpty
-                        ? "Без названия"
+                        ? iosT(language, "UNTITLED")
                         : item.title
                 ),
                 primaryButton: .destructive(
-                    Text("Удалить")
+                    Text(iosT(language, "DELETE"))
                 ) {
                     model.delete(item)
                 },
                 secondaryButton: .cancel(
-                    Text("Отмена")
+                    Text(iosT(language, "CANCEL"))
                 )
             )
         }
@@ -762,7 +790,7 @@ private func uploadListingPhoto(
         completion(.failure(NSError(
             domain: "Listing",
             code: 1,
-            userInfo: [NSLocalizedDescriptionKey: "Сначала войдите в аккаунт."]
+            userInfo: [NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "PLEASE_SIGN_IN_FIRST")]
         )))
         return
     }
@@ -780,7 +808,7 @@ private func uploadListingPhoto(
             completion(.failure(NSError(
                 domain: "Listing",
                 code: 2,
-                userInfo: [NSLocalizedDescriptionKey: "Не удалось подготовить загрузку фото."]
+                userInfo: [NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_PHOTO_UPLOAD")]
             )))
             return
         }
@@ -802,7 +830,7 @@ private func uploadListingPhoto(
                 completion(.failure(NSError(
                     domain: "Listing",
                     code: 3,
-                    userInfo: [NSLocalizedDescriptionKey: "Сервер не вернул HTTP-ответ."]
+                    userInfo: [NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "SERVER_DID_NOT_RETURN_HTTP_RESPONSE")]
                 )))
                 return
             }
@@ -816,7 +844,7 @@ private func uploadListingPhoto(
                     domain: "Listing",
                     code: http.statusCode,
                     userInfo: [NSLocalizedDescriptionKey:
-                        json["error"] as? String ?? "Ошибка загрузки фото \(http.statusCode)"
+                        json["error"] as? String ?? iosT(iosCurrentLanguage(), "PHOTO_UPLOAD_HTTP_ERROR", String(http.statusCode))
                     ]
                 )))
                 return
@@ -826,7 +854,7 @@ private func uploadListingPhoto(
                 completion(.failure(NSError(
                     domain: "Listing",
                     code: 4,
-                    userInfo: [NSLocalizedDescriptionKey: "Worker не вернул fileId."]
+                    userInfo: [NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "WORKER_DID_NOT_RETURN_FILE_ID")]
                 )))
                 return
             }
@@ -839,8 +867,47 @@ private func uploadListingPhoto(
 
 private func deliveryName(_ value: String) -> String {
     switch value {
-    case "NovaPoshta": return "Новая почта"
-    case "Ukrposhta": return "Укрпочта"
+    case "NovaPoshta": return iosT(iosCurrentLanguage(), "NOVA_POSHTA_RU_NAME")
+    case "Ukrposhta": return iosT(iosCurrentLanguage(), "UKRPOSHTA")
     default: return value
+    }
+}
+
+
+private func listingOptionTitle(
+    _ value: String,
+    language: IOSAppLanguage
+) -> String {
+    switch value {
+    case "Шортики":
+        return iosT(language, "TYPE_SHORTS")
+    case "Стринги":
+        return iosT(language, "TYPE_THONGS")
+    case "Танга":
+        return iosT(language, "TYPE_TANGA")
+    case "Бикини":
+        return iosT(language, "TYPE_BIKINI")
+    case "Слипы":
+        return iosT(language, "TYPE_BRIEFS")
+    case "Бразилиана":
+        return iosT(language, "TYPE_BRAZILIAN")
+    case "Кружевные":
+        return iosT(language, "TYPE_LACE")
+    case "Другое":
+        return iosT(language, "OTHER")
+    case "Черный":
+        return iosT(language, "COLOR_BLACK")
+    case "Красный":
+        return iosT(language, "COLOR_RED")
+    case "Розовый":
+        return iosT(language, "COLOR_PINK")
+    case "Белый":
+        return iosT(language, "COLOR_WHITE")
+    case "Синий":
+        return iosT(language, "COLOR_BLUE")
+    case "Другой":
+        return iosT(language, "COLOR_OTHER")
+    default:
+        return value
     }
 }
