@@ -301,39 +301,33 @@ struct AuthView: View {
     private func presentingViewController()
         -> UIViewController?
     {
-        guard
-            let scene =
-                UIApplication.shared
-                    .connectedScenes
-                    .compactMap {
-                        $0
-                            as? UIWindowScene
-                    }
-                    .first(
-                        where: {
-                            $0.activationState
-                                == .foregroundActive
-                        }
-                    ),
-            let root =
-                scene.windows
-                    .first(
-                        where: {
-                            $0.isKeyWindow
-                        }
-                    )?
-                    .rootViewController
-        else {
+        var activeScene: UIWindowScene?
+
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            if scene.activationState == .foregroundActive {
+                activeScene = scene
+                break
+            }
+        }
+
+        guard let scene = activeScene else {
             return nil
         }
 
-        var presenter = root
+        var rootViewController: UIViewController?
 
-        while
-            let presented =
-                presenter
-                    .presentedViewController
-        {
+        for window in scene.windows {
+            if window.isKeyWindow {
+                rootViewController = window.rootViewController
+                break
+            }
+        }
+
+        guard var presenter = rootViewController else {
+            return nil
+        }
+
+        while let presented = presenter.presentedViewController {
             presenter = presented
         }
 
