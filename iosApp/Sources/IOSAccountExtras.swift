@@ -118,38 +118,47 @@ struct IOSDisclaimerRulesView: View {
     @State
     private var accepted = false
 
-    private let sections: [(String, String, Bool)] = [
-        (
-            "1. О сервисе",
-            "«Worn panties shop» является информационной площадкой для размещения объявлений. Администрация не является стороной сделок между пользователями, не хранит и не обрабатывает денежные средства, не осуществляет доставку товаров и не несёт ответственности за содержание объявлений.",
-            false
-        ),
-        (
-            "2. Возрастные ограничения",
-            "Сервис предназначен исключительно для лиц старше 18 лет. Регистрируясь, вы подтверждаете, что достигли совершеннолетия. Размещение контента с участием несовершеннолетних строго запрещено и будет немедленно удалено.",
-            false
-        ),
-        (
-            "3. Покупки и доставка",
-            "• Все расчёты между пользователями происходят напрямую (наложенный платёж, перевод на карту).\n• Почта/курьерская служба не позволяет вскрыть посылку до оплаты — вы принимаете этот риск.\n• Фото упаковки с номером накладной обязательно. Продавец должен отправить подтверждение упаковки покупателю до отправки заказа.\n• Предоплата за доставку (200–300 грн) — стандартная практика защиты от отказов.",
-            false
-        ),
-        (
-            "4. Проверка фотографий и подтверждение упаковки",
-            "• Фотографии объявления должны содержать исходные EXIF-метаданные камеры.\n• Фотографии без обязательных EXIF-метаданных не допускаются к публикации.\n• Фото одного объявления должны иметь одинаковый отпечаток устройства.\n• Геолокационные данные из EXIF не используются и не сохраняются сервисом.\n• Фото подтверждения упаковки должно быть сделано тем же устройством.\n• Запрещено удалять, изменять, подделывать или обходить проверку метаданных и отпечатка устройства.",
-            false
-        ),
-        (
-            "5. Запрещено",
-            "• Контент с участием лиц младше 18 лет\n• Мошенничество, обман, фишинг\n• Продажа запрещённых веществ и предметов\n• Разглашение персональных данных третьих лиц\n\nНарушение ведёт к блокировке аккаунта.",
-            true
-        ),
-        (
-            "6. Ответственность",
-            "Используя сервис, вы принимаете на себя ответственность за свои действия, размещаемые материалы и достоверность информации. Проверка EXIF и отпечатка устройства является дополнительной мерой защиты и не гарантирует отсутствие мошенничества. Пользователь самостоятельно оценивает риски сделки.",
-            false
-        )
-    ]
+    @AppStorage("appLanguage")
+    private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
+
+    private var sections: [(String, String, Bool)] {
+        [
+            (
+                iosT(language, "TEXT_1_ABOUT_THE_SERVICE"),
+                iosT(language, "RULES_PLATFORM_DISCLAIMER"),
+                false
+            ),
+            (
+                iosT(language, "TEXT_2_AGE_RESTRICTIONS"),
+                iosT(language, "RULES_AGE_RESTRICTION"),
+                false
+            ),
+            (
+                iosT(language, "TEXT_3_PURCHASES_AND_DELIVERY"),
+                iosT(language, "RULES_PAYMENTS_AND_DELIVERY"),
+                false
+            ),
+            (
+                iosT(language, "TEXT_4_PHOTO_VERIFICATION_AND_PACKAGING_CONFIRMATION"),
+                iosT(language, "RULES_PHOTO_METADATA_POLICY"),
+                false
+            ),
+            (
+                iosT(language, "TEXT_5_PROHIBITED"),
+                iosT(language, "RULES_PROHIBITED_CONTENT"),
+                true
+            ),
+            (
+                iosT(language, "TEXT_6_RESPONSIBILITY"),
+                iosT(language, "RULES_USER_RESPONSIBILITY"),
+                false
+            )
+        ]
+    }
 
     var body: some View {
         NavigationView {
@@ -181,7 +190,7 @@ struct IOSDisclaimerRulesView: View {
 
                     if requireAcceptance {
                         Toggle(
-                            "Я ознакомился(ась) и принимаю правила",
+                            iosT(language, "I_HAVE_READ_AND_ACCEPT_THE_RULES"),
                             isOn: $accepted
                         )
                         .padding(.top, 4)
@@ -200,7 +209,7 @@ struct IOSDisclaimerRulesView: View {
                                     ProgressView()
                                 }
 
-                                Text("Принять и продолжить")
+                                Text(iosT(language, "ACCEPT_AND_CONTINUE"))
                                     .frame(maxWidth: .infinity)
                             }
                         }
@@ -211,12 +220,12 @@ struct IOSDisclaimerRulesView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Правила сервиса")
+            .navigationTitle(iosT(language, "SERVICE_RULES"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if let onClose {
-                        Button("Готово") {
+                        Button(iosT(language, "READY")) {
                             onClose()
                         }
                     } else {
@@ -242,17 +251,17 @@ final class IOSFeedbackModel: ObservableObject {
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard cleanText.count >= 5 else {
-            errorMessage = "Сообщение слишком короткое."
+            errorMessage = iosT(iosCurrentLanguage(), "MESSAGE_TOO_SHORT")
             return
         }
 
         guard cleanText.count <= 2000 else {
-            errorMessage = "Сообщение слишком длинное."
+            errorMessage = iosT(iosCurrentLanguage(), "MESSAGE_TOO_LONG")
             return
         }
 
         guard let user = Auth.auth().currentUser else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -275,7 +284,7 @@ final class IOSFeedbackModel: ObservableObject {
             else {
                 DispatchQueue.main.async {
                     self?.sending = false
-                    self?.errorMessage = "Не удалось подготовить запрос."
+                    self?.errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_REQUEST")
                 }
                 return
             }
@@ -313,7 +322,7 @@ final class IOSFeedbackModel: ObservableObject {
                     let message =
                         networkError?.localizedDescription
                         ?? (json["error"] as? String)
-                        ?? "Не удалось отправить сообщение."
+                        ?? iosT(iosCurrentLanguage(), "FAILED_TO_SEND_MESSAGE")
 
                     DispatchQueue.main.async {
                         guard let self else { return }
@@ -342,11 +351,18 @@ struct IOSFeedbackView: View {
     @State
     private var text = ""
 
+    @AppStorage("appLanguage")
+    private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
+
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 14) {
                 Text(
-                    "Напишите предложение, сообщите об ошибке или оставьте отзыв о сервисе."
+                    iosT(language, "FEEDBACK_PROMPT")
                 )
                 .foregroundStyle(.secondary)
 
@@ -368,7 +384,7 @@ struct IOSFeedbackView: View {
                 }
 
                 if model.sent {
-                    Text("Спасибо! Сообщение отправлено.")
+                    Text(iosT(language, "THANK_YOU_YOUR_MESSAGE_HAS_BEEN_SENT"))
                         .foregroundStyle(.green)
                 }
 
@@ -380,7 +396,7 @@ struct IOSFeedbackView: View {
                             ProgressView()
                         }
 
-                        Text("Отправить")
+                        Text(iosT(language, "SEND"))
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -396,11 +412,11 @@ struct IOSFeedbackView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Предложения и обратная связь")
+            .navigationTitle(iosT(language, "FEEDBACK_TITLE"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Готово") {
+                    Button(iosT(language, "READY")) {
                         dismiss()
                     }
                 }
@@ -537,7 +553,7 @@ func uploadIOSProfileAvatar(
                     code: 1,
                     userInfo: [
                         NSLocalizedDescriptionKey:
-                            "Пользователь не авторизован."
+                            iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
                     ]
                 )
             )
@@ -564,7 +580,7 @@ func uploadIOSProfileAvatar(
                         code: 2,
                         userInfo: [
                             NSLocalizedDescriptionKey:
-                                "Не удалось подготовить загрузку."
+                                iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_PHOTO_UPLOAD")
                         ]
                     )
                 )
@@ -600,7 +616,7 @@ func uploadIOSProfileAvatar(
                                 code: 3,
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
-                                        "Сервер не вернул HTTP-ответ."
+                                        iosT(iosCurrentLanguage(), "SERVER_DID_NOT_RETURN_HTTP_RESPONSE")
                                 ]
                             )
                         )
@@ -622,7 +638,7 @@ func uploadIOSProfileAvatar(
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
                                         json["error"] as? String
-                                        ?? "Ошибка загрузки фото."
+                                        ?? iosT(iosCurrentLanguage(), "PHOTO_UPLOAD_FAILED")
                                 ]
                             )
                         )
@@ -641,7 +657,7 @@ func uploadIOSProfileAvatar(
                                 code: 4,
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
-                                        "Worker не вернул fileId."
+                                        iosT(iosCurrentLanguage(), "WORKER_DID_NOT_RETURN_FILE_ID")
                                 ]
                             )
                         )
