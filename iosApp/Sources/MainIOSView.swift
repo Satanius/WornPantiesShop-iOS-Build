@@ -401,6 +401,7 @@ struct MainIOSView: View {
     @State private var searchQuery = ""
     @State private var filters = IOSAnnouncementFilters()
     @State private var selectedAnnouncement: IOSAnnouncement?
+    @State private var pendingOrderId: String?
     @AppStorage("appLanguage") private var languageRaw = "RU"
 
     private var language: IOSAppLanguage {
@@ -576,9 +577,10 @@ struct MainIOSView: View {
             {
                 selectedTab = 2
             } else if
-                IOSPushNotifications
-                    .consumePendingOrderId() != nil
+                let orderId = IOSPushNotifications
+                    .consumePendingOrderId()
             {
+                pendingOrderId = orderId
                 showProfile = true
             }
         }
@@ -595,7 +597,9 @@ struct MainIOSView: View {
                 .publisher(
                     for: .iosPushOpenOrder
                 )
-        ) { _ in
+        ) { notification in
+            pendingOrderId =
+                notification.userInfo?["orderId"] as? String
             showProfile = true
         }
         .onDisappear {
@@ -613,6 +617,10 @@ struct MainIOSView: View {
             ProfileIOSView(
                 country: viewModel.country ?? "UA",
                 avatarFileId: viewModel.avatarFileId,
+                pendingOrderId: pendingOrderId,
+                onPendingOrderConsumed: {
+                    pendingOrderId = nil
+                },
                 onAvatarChanged: { fileId in
                     viewModel.setAvatarFileId(fileId)
                 },
@@ -812,6 +820,8 @@ private struct AnnouncementRow: View {
 private struct ProfileIOSView: View {
     let country: String
     let avatarFileId: String?
+    let pendingOrderId: String?
+    let onPendingOrderConsumed: () -> Void
     let onAvatarChanged: (String) -> Void
     let onLogout: () -> Void
 
@@ -831,11 +841,15 @@ private struct ProfileIOSView: View {
     init(
         country: String,
         avatarFileId: String?,
+        pendingOrderId: String?,
+        onPendingOrderConsumed: @escaping () -> Void,
         onAvatarChanged: @escaping (String) -> Void,
         onLogout: @escaping () -> Void
     ) {
         self.country = country
         self.avatarFileId = avatarFileId
+        self.pendingOrderId = pendingOrderId
+        self.onPendingOrderConsumed = onPendingOrderConsumed
         self.onAvatarChanged = onAvatarChanged
         self.onLogout = onLogout
         _currentAvatarFileId = State(
@@ -1005,6 +1019,12 @@ private struct ProfileIOSView: View {
             }
         }
         .navigationViewStyle(.stack)
+        .onAppear {
+            openPendingOrderIfNeeded()
+        }
+        .onChange(of: pendingOrderId) { _ in
+            openPendingOrderIfNeeded()
+        }
         .sheet(isPresented: $showMyListings) {
             MyListingsIOSView()
         }
@@ -1055,6 +1075,37 @@ private struct ProfileIOSView: View {
                 }
             }
         }
+    }
+
+    private func openPendingOrderIfNeeded() {
+        guard
+            let orderId = pendingOrderId,
+            !orderId.isEmpty,
+            let uid = Auth.auth().currentUser?.uid
+        else {
+            return
+        }
+
+        Firestore.firestore()
+            .collection("orders")
+            .document(orderId)
+            .getDocument { snapshot, _ in
+                let data = snapshot?.data()
+                let sellerId = data?["sellerId"] as? String ?? ""
+                let buyerId = data?["buyerId"] as? String ?? ""
+
+                DispatchQueue.main.async {
+                    if uid == sellerId {
+                        showBuyerOrders = false
+                        showSellerOrders = true
+                    } else if uid == buyerId {
+                        showSellerOrders = false
+                        showBuyerOrders = true
+                    }
+
+                    onPendingOrderConsumed()
+                }
+            }
     }
 }
 
