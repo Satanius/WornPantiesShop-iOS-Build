@@ -8,7 +8,6 @@ struct AnnouncementDetailsIOSView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var photoIndex = 0
     @State private var showCheckout = false
-    @State private var orderPlaced = false
     @State private var openingChat = false
     @State private var chatError: String?
     @State private var openedChat: IOSChatSummary?
@@ -202,7 +201,7 @@ struct AnnouncementDetailsIOSView: View {
         .sheet(isPresented: $showCheckout) {
             CheckoutIOSView(item: item) {
                 showCheckout = false
-                orderPlaced = true
+                finishOrderAndOpenChat()
             }
         }
         .sheet(item: $openedChat) { chat in
@@ -273,13 +272,6 @@ struct AnnouncementDetailsIOSView: View {
                 "Его объявления и чаты будут скрыты для вас."
             )
         }
-        .alert("Заказ оформлен", isPresented: $orderPlaced) {
-            Button("OK") {
-                dismiss()
-            }
-        } message: {
-            Text("Заказ создан и отправлен продавцу.")
-        }
     }
 
 
@@ -291,6 +283,308 @@ struct AnnouncementDetailsIOSView: View {
             announcementId: item.id,
             reason: reason
         )
+    }
+
+    private func finishOrderAndOpenChat() {
+        guard
+            let buyerId =
+                Auth.auth()
+                    .currentUser?
+                    .uid,
+            !buyerId.isEmpty
+        else {
+            chatError =
+                "Заказ оформлен, но не удалось открыть чат: пользователь не авторизован."
+            return
+        }
+
+        let sellerId =
+            item.authorId
+
+        guard
+            !sellerId.isEmpty,
+            buyerId != sellerId
+        else {
+            chatError =
+                "Заказ оформлен, но не удалось открыть чат."
+            return
+        }
+
+        let users =
+            [buyerId, sellerId]
+                .sorted()
+
+        let chatId =
+            users[0]
+                + "_"
+                + users[1]
+                + "_"
+                + item.id
+
+        openingChat = true
+        chatError = nil
+
+        let firestore =
+            Firestore.firestore()
+
+        let chatDocument =
+            firestore
+                .collection("chats")
+                .document(chatId)
+
+        let chatBaseData:
+            [String: Any] = [
+                "buyerId": buyerId,
+                "sellerId": sellerId,
+                "announcementId": item.id,
+                "announcementTitle": item.title
+            ]
+
+        chatDocument.setData(
+            chatBaseData,
+            merge: true
+        ) { error in
+            if let error {
+                DispatchQueue.main.async {
+                    openingChat = false
+                    chatError =
+                        "Заказ оформлен, но чат не открылся: "
+                        + error.localizedDescription
+                }
+                return
+            }
+
+            chatDocument
+                .collection("messages")
+                .limit(to: 1)
+                .getDocuments {
+                    snapshot,
+                    error in
+
+                    if let error {
+                        DispatchQueue.main.async {
+                            openingChat = false
+                            chatError =
+                                "Заказ оформлен, но чат не открылся: "
+                                + error.localizedDescription
+                        }
+                        return
+                    }
+
+                    if
+                        let snapshot,
+                        !snapshot.documents.isEmpty
+                    {
+                        DispatchQueue.main.async {
+                            openingChat = false
+                            openedChat =
+                                IOSChatSummary(
+                                    id: chatId,
+                                    buyerId: buyerId,
+                                    sellerId: sellerId,
+                                    announcementId:
+                                        item.id,
+                                    announcementTitle:
+                                        item.title
+                                )
+                        }
+                        return
+                    }
+
+                    createInitialBuyMessage(
+                        firestore:
+                            firestore,
+                        chatDocument:
+                            chatDocument,
+                        chatId:
+                            chatId,
+                        buyerId:
+                            buyerId,
+                        sellerId:
+                            sellerId
+                    )
+                }
+        }
+    }
+
+    private func createInitialBuyMessage(
+        firestore: Firestore,
+        chatDocument: DocumentReference,
+        chatId: String,
+        buyerId: String,
+        sellerId: String
+    ) {
+        let text =
+            "Здравствуйте! Я хочу купить этот товар."
+
+        let now =
+            Int64(
+                Date()
+                    .timeIntervalSince1970
+                    * 1000.0
+            )
+
+        let messageDocument =
+            chatDocument
+                .collection("messages")
+                .document()
+
+        let chatData:
+            [String: Any] = [
+                "buyerId": buyerId,
+                "sellerId": sellerId,
+                "announcementId": item.id,
+                "announcementTitle": item.title,
+                "lastMessage": text,
+                "lastSenderId": buyerId,
+                "updatedAt": now,
+                "unreadCount_\(sellerId)":
+                    FieldValue.increment(
+                        Int64(1)
+                    )
+            ]
+
+        let messageData:
+            [String: Any] = [
+                "senderId": buyerId,
+                "text": text,
+                "sentAt": now,
+                "messageType": "NORMAL",
+                "photoVerified": false
+            ]
+
+        let batch =
+            firestore.batch()
+
+        batch.setData(
+            chatData,
+            forDocument:
+                chatDocument,
+            merge: true
+        )
+
+        batch.setData(
+            messageData,
+            forDocument:
+                messageDocument
+        )
+
+        batch.commit { error in
+            DispatchQueue.main.async {
+                openingChat = false
+
+                if let error {
+                    chatError =
+                        "Заказ оформлен, но первое сообщение не отправилось: "
+                        + error.localizedDescription
+                    return
+                }
+
+                sendInitialBuyPush(
+                    chatId: chatId,
+                    messageId:
+                        messageDocument
+                            .documentID
+                )
+
+                openedChat =
+                    IOSChatSummary(
+                        id: chatId,
+                        buyerId: buyerId,
+                        sellerId: sellerId,
+                        announcementId:
+                            item.id,
+                        announcementTitle:
+                            item.title,
+                        lastMessage: text,
+                        lastSenderId:
+                            buyerId,
+                        updatedAt: now,
+                        unreadCount: 0
+                    )
+            }
+        }
+    }
+
+    private func sendInitialBuyPush(
+        chatId: String,
+        messageId: String
+    ) {
+        guard
+            let user =
+                Auth.auth()
+                    .currentUser
+        else {
+            return
+        }
+
+        user.getIDTokenForcingRefresh(
+            false
+        ) { token, _ in
+            guard
+                let token,
+                !token.isEmpty
+            else {
+                return
+            }
+
+            guard
+                let url =
+                    URL(
+                        string:
+                            "https://telegram-photo-storage.sataniusdarkc.workers.dev/notify"
+                    )
+            else {
+                return
+            }
+
+            let body:
+                [String: Any] = [
+                    "chatId": chatId,
+                    "messageId": messageId
+                ]
+
+            guard
+                let data =
+                    try? JSONSerialization
+                        .data(
+                            withJSONObject:
+                                body
+                        )
+            else {
+                return
+            }
+
+            var request =
+                URLRequest(
+                    url: url
+                )
+
+            request.httpMethod =
+                "POST"
+            request.timeoutInterval =
+                30
+            request.httpBody =
+                data
+
+            request.setValue(
+                "Bearer \(token)",
+                forHTTPHeaderField:
+                    "Authorization"
+            )
+
+            request.setValue(
+                "application/json",
+                forHTTPHeaderField:
+                    "Content-Type"
+            )
+
+            URLSession.shared
+                .dataTask(
+                    with: request
+                )
+                .resume()
+        }
     }
 
     private func openSellerChat() {
