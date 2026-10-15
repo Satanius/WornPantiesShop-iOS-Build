@@ -1,6 +1,7 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import GoogleSignIn
 
 @main
 struct WornPantiesShopIOSApp: App {
@@ -37,6 +38,10 @@ struct WornPantiesShopIOSApp: App {
                 }
             }
             .preferredColorScheme(.dark)
+            .onOpenURL { url in
+                GIDSignIn.sharedInstance
+                    .handle(url)
+            }
         }
     }
 }
