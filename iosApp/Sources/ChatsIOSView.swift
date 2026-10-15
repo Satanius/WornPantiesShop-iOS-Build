@@ -322,9 +322,20 @@ private final class ChatsIOSViewModel: ObservableObject {
 }
 
 struct ChatsIOSView: View {
+    let pendingChatId: String?
+    let onPendingChatConsumed: () -> Void
+
     @StateObject private var viewModel = ChatsIOSViewModel()
     @State private var selectedChat: IOSChatSummary?
     @State private var deletingChat: IOSChatSummary?
+
+    init(
+        pendingChatId: String? = nil,
+        onPendingChatConsumed: @escaping () -> Void = {}
+    ) {
+        self.pendingChatId = pendingChatId
+        self.onPendingChatConsumed = onPendingChatConsumed
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -433,6 +444,13 @@ struct ChatsIOSView: View {
         .navigationViewStyle(.stack)
         .onAppear {
             viewModel.start()
+            openPendingChatIfAvailable()
+        }
+        .onChange(of: viewModel.chats.map(\.id)) { _ in
+            openPendingChatIfAvailable()
+        }
+        .onChange(of: pendingChatId) { _ in
+            openPendingChatIfAvailable()
         }
         .onDisappear {
             viewModel.stop()
@@ -456,6 +474,22 @@ struct ChatsIOSView: View {
                 )
             )
         }
+    }
+
+    private func openPendingChatIfAvailable() {
+        guard
+            let pendingChatId,
+            !pendingChatId.isEmpty,
+            selectedChat?.id != pendingChatId,
+            let chat = viewModel.chats.first(
+                where: { $0.id == pendingChatId }
+            )
+        else {
+            return
+        }
+
+        selectedChat = chat
+        onPendingChatConsumed()
     }
 }
 
