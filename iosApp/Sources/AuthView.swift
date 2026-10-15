@@ -14,27 +14,53 @@ struct AuthView: View {
     @State private var selectedCountry = "UA"
     @State private var loading = false
     @State private var errorMessage: String?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(red: 233.0 / 255.0, green: 30.0 / 255.0, blue: 99.0 / 255.0)
 
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
-                Spacer(minLength: 70)
+                HStack {
+                    Spacer()
+
+                    Button {
+                        languageRaw = language.next.rawValue
+                    } label: {
+                        Label(
+                            language.rawValue,
+                            systemImage: "globe"
+                        )
+                    }
+                    .foregroundStyle(accentPink)
+                }
+
+                Spacer(minLength: 30)
 
                 Text("Worn panties shop")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(accentPink)
                     .multilineTextAlignment(.center)
 
-                Text(registration ? "Регистрация" : "Вход")
+                Text(
+                    registration
+                        ? iosT(language, "SIGN_UP")
+                        : iosT(language, "SIGN_IN")
+                )
                     .font(.system(size: 18))
                     .foregroundStyle(.white)
 
                 if registration {
-                    Picker("Страна", selection: $selectedCountry) {
-                        Text("Украина").tag("UA")
-                        Text("Россия").tag("RU")
+                    Picker(
+                        iosT(language, "COUNTRY"),
+                        selection: $selectedCountry
+                    ) {
+                        Text(countryTitle("UA")).tag("UA")
+                        Text(countryTitle("RU")).tag("RU")
                     }
                     .pickerStyle(.menu)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -61,7 +87,10 @@ struct AuthView: View {
                         errorMessage = nil
                     }
 
-                SecureField("Пароль", text: $password)
+                SecureField(
+                    iosT(language, "PASSWORD"),
+                    text: $password
+                )
                     .textContentType(registration ? .newPassword : .password)
                     .padding(.horizontal, 12)
                     .frame(height: 52)
@@ -87,7 +116,11 @@ struct AuthView: View {
                             ProgressView()
                                 .tint(.white)
                         } else {
-                            Text(registration ? "Зарегистрироваться" : "Войти")
+                            Text(
+                                registration
+                                    ? iosT(language, "SIGN_UP_2")
+                                    : iosT(language, "SIGN_IN_2")
+                            )
                                 .fontWeight(.semibold)
                         }
                     }
@@ -101,7 +134,17 @@ struct AuthView: View {
                 .disabled(loading)
                 .opacity(loading ? 0.7 : 1.0)
 
-                Button(registration ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться") {
+                Button(
+                    registration
+                        ? iosT(
+                            language,
+                            "ALREADY_HAVE_AN_ACCOUNT_SIGN_IN"
+                        )
+                        : iosT(
+                            language,
+                            "DON_T_HAVE_AN_ACCOUNT_SIGN_UP"
+                        )
+                ) {
                     registration.toggle()
                     errorMessage = nil
                 }
@@ -118,7 +161,12 @@ struct AuthView: View {
                         Image(systemName: "g.circle.fill")
                             .font(.system(size: 20))
 
-                        Text("Войти через Google")
+                        Text(
+                            iosT(
+                                language,
+                                "SIGN_IN_WITH_GOOGLE"
+                            )
+                        )
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -140,6 +188,25 @@ struct AuthView: View {
             .padding(.horizontal, 24)
         }
         .background(Color(red: 18.0 / 255.0, green: 18.0 / 255.0, blue: 18.0 / 255.0))
+    }
+
+    private func countryTitle(
+        _ code: String
+    ) -> String {
+        switch (language, code) {
+        case (.ua, "UA"):
+            return "Україна"
+        case (.en, "UA"):
+            return "Ukraine"
+        case (.ua, "RU"):
+            return "Росія"
+        case (.en, "RU"):
+            return "Russia"
+        case (_, "RU"):
+            return "Россия"
+        default:
+            return "Украина"
+        }
     }
 
     @MainActor
