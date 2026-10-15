@@ -112,7 +112,7 @@ private final class ChatsIOSViewModel: ObservableObject {
 
         guard let uid = Auth.auth().currentUser?.uid, !uid.isEmpty else {
             chats = []
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -207,7 +207,7 @@ private final class ChatsIOSViewModel: ObservableObject {
         }
 
         guard let user = Auth.auth().currentUser else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -232,7 +232,7 @@ private final class ChatsIOSViewModel: ObservableObject {
             else {
                 DispatchQueue.main.async {
                     self?.deletingId = nil
-                    self?.errorMessage = "Не удалось подготовить удаление чата."
+                    self?.errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_CHAT_DELETION")
                 }
                 return
             }
@@ -272,7 +272,7 @@ private final class ChatsIOSViewModel: ObservableObject {
                     let message =
                         networkError?.localizedDescription
                         ?? (json["error"] as? String)
-                        ?? "Не удалось удалить чат."
+                        ?? iosT(iosCurrentLanguage(), "FAILED_TO_DELETE_CHAT")
 
                     DispatchQueue.main.async {
                         guard let self else { return }
@@ -328,6 +328,11 @@ struct ChatsIOSView: View {
     @StateObject private var viewModel = ChatsIOSViewModel()
     @State private var selectedChat: IOSChatSummary?
     @State private var deletingChat: IOSChatSummary?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     init(
         pendingChatId: String? = nil,
@@ -348,7 +353,7 @@ struct ChatsIOSView: View {
             Group {
                 if let error = viewModel.errorMessage {
                     VStack(spacing: 14) {
-                        Text("Не удалось загрузить чаты")
+                        Text(iosT(language, "FAILED_TO_LOAD_CHATS_TITLE"))
                             .font(.headline)
 
                         Text(error)
@@ -356,7 +361,7 @@ struct ChatsIOSView: View {
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
 
-                        Button("Повторить") {
+                        Button(iosT(language, "RETRY")) {
                             viewModel.start()
                         }
                         .buttonStyle(.borderedProminent)
@@ -369,7 +374,7 @@ struct ChatsIOSView: View {
                             .font(.system(size: 40))
                             .foregroundStyle(.secondary)
 
-                        Text("Пока нет чатов")
+                        Text(iosT(language, "NO_CHATS_YET"))
                             .font(.headline)
                     }
                 } else {
@@ -385,7 +390,7 @@ struct ChatsIOSView: View {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(
                                         chat.announcementTitle.isEmpty
-                                            ? "Объявление"
+                                            ? iosT(language, "LISTING_2")
                                             : chat.announcementTitle
                                     )
                                     .font(.headline)
@@ -394,7 +399,7 @@ struct ChatsIOSView: View {
 
                                     Text(
                                         chat.lastMessage.isEmpty
-                                            ? "Нет сообщений"
+                                            ? iosT(language, "NO_MESSAGES")
                                             : chat.lastMessage
                                     )
                                     .font(.subheadline)
@@ -420,7 +425,7 @@ struct ChatsIOSView: View {
                                 deletingChat = chat
                             } label: {
                                 Label(
-                                    "Удалить чат",
+                                    iosT(language, "DELETE_CHAT_ACTION"),
                                     systemImage: "trash"
                                 )
                             }
@@ -430,7 +435,7 @@ struct ChatsIOSView: View {
                                 deletingChat = chat
                             } label: {
                                 Label(
-                                    "Удалить",
+                                    iosT(language, "DELETE"),
                                     systemImage: "trash"
                                 )
                             }
@@ -439,7 +444,7 @@ struct ChatsIOSView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Чаты")
+            .navigationTitle(iosT(language, "CHATS"))
         }
         .navigationViewStyle(.stack)
         .onAppear {
@@ -460,17 +465,17 @@ struct ChatsIOSView: View {
         }
         .alert(item: $deletingChat) { chat in
             Alert(
-                title: Text("Удалить чат?"),
+                title: Text(iosT(language, "DELETE_CHAT")),
                 message: Text(
-                    "Чат и все сообщения будут удалены безвозвратно."
+                    iosT(language, "THE_CHAT_AND_ALL_MESSAGES_WILL_BE")
                 ),
                 primaryButton: .destructive(
-                    Text("Удалить")
+                    Text(iosT(language, "DELETE"))
                 ) {
                     viewModel.deleteChat(chat)
                 },
                 secondaryButton: .cancel(
-                    Text("Отмена")
+                    Text(iosT(language, "CANCEL"))
                 )
             )
         }
@@ -564,12 +569,12 @@ private final class ChatConversationIOSViewModel: ObservableObject {
         }
 
         guard let user = Auth.auth().currentUser else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
         guard let jpeg = prepareJPEG(image) else {
-            errorMessage = "Не удалось сжать фото до 400 КБ."
+            errorMessage = iosT(iosCurrentLanguage(), "PHOTO_COMPRESSION_FAILED_400KB")
             return
         }
 
@@ -592,7 +597,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
             guard let token, !token.isEmpty else {
                 DispatchQueue.main.async {
                     self.uploadingPhoto = false
-                    self.errorMessage = "Не удалось получить Firebase ID Token."
+                    self.errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_GET_FIREBASE_ID_TOKEN")
                 }
                 return
             }
@@ -602,7 +607,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
             ) else {
                 DispatchQueue.main.async {
                     self.uploadingPhoto = false
-                    self.errorMessage = "Некорректный адрес загрузки фото."
+                    self.errorMessage = iosT(iosCurrentLanguage(), "INVALID_PHOTO_UPLOAD_URL")
                 }
                 return
             }
@@ -636,7 +641,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
                 guard let http = response as? HTTPURLResponse else {
                     DispatchQueue.main.async {
                         self.uploadingPhoto = false
-                        self.errorMessage = "Сервер не вернул HTTP-ответ."
+                        self.errorMessage = iosT(iosCurrentLanguage(), "SERVER_DID_NOT_RETURN_HTTP_RESPONSE")
                     }
                     return
                 }
@@ -647,7 +652,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
 
                 guard (200...299).contains(http.statusCode) else {
                     let message = json?["error"] as? String
-                        ?? "Ошибка загрузки фото \(http.statusCode)"
+                        ?? iosT(iosCurrentLanguage(), "PHOTO_UPLOAD_HTTP_ERROR", String(http.statusCode))
 
                     DispatchQueue.main.async {
                         self.uploadingPhoto = false
@@ -662,7 +667,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
                 else {
                     DispatchQueue.main.async {
                         self.uploadingPhoto = false
-                        self.errorMessage = "Worker не вернул fileId."
+                        self.errorMessage = iosT(iosCurrentLanguage(), "WORKER_DID_NOT_RETURN_FILE_ID")
                     }
                     return
                 }
@@ -693,7 +698,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
         guard let uid = Auth.auth().currentUser?.uid else {
             sending = false
             uploadingPhoto = false
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -708,7 +713,7 @@ private final class ChatConversationIOSViewModel: ObservableObject {
 
         let lastMessage = photoFileId.isEmpty
             ? cleanText
-            : "📷 Фото"
+            : iosT(iosCurrentLanguage(), "PHOTO_MESSAGE")
 
         let chatData: [String: Any] = [
             "buyerId": chat.buyerId,
@@ -908,7 +913,12 @@ struct ChatConversationIOSView: View {
     @State private var showPhotoPicker = false
     @State private var showReportReasons = false
     @State private var showBlockConfirmation = false
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -1007,7 +1017,7 @@ struct ChatConversationIOSView: View {
                     )
 
                     TextField(
-                        "Сообщение",
+                        iosT(language, "MESSAGE"),
                         text: $viewModel.text
                     )
                     .padding(.horizontal, 12)
@@ -1042,7 +1052,7 @@ struct ChatConversationIOSView: View {
             }
             .navigationTitle(
                 chat.announcementTitle.isEmpty
-                    ? "Чат"
+                    ? iosT(language, "CHAT")
                     : chat.announcementTitle
             )
             .navigationBarTitleDisplayMode(.inline)
@@ -1053,7 +1063,7 @@ struct ChatConversationIOSView: View {
                             showReportReasons = true
                         } label: {
                             Label(
-                                "Пожаловаться",
+                                iosT(language, "REPORT"),
                                 systemImage: "exclamationmark.triangle"
                             )
                         }
@@ -1062,7 +1072,7 @@ struct ChatConversationIOSView: View {
                             showBlockConfirmation = true
                         } label: {
                             Label(
-                                "Заблокировать пользователя",
+                                iosT(language, "BLOCK_USER"),
                                 systemImage: "person.crop.circle.badge.xmark"
                             )
                         }
@@ -1078,7 +1088,7 @@ struct ChatConversationIOSView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") {
+                    Button(iosT(language, "CLOSE")) {
                         dismiss()
                     }
                 }
@@ -1092,53 +1102,53 @@ struct ChatConversationIOSView: View {
             }
         }
         .confirmationDialog(
-            "Причина жалобы",
+            iosT(language, "REPORT_REASON"),
             isPresented: $showReportReasons,
             titleVisibility: .visible
         ) {
-            Button("Запрещённый контент") {
+            Button(iosT(language, "PROHIBITED_CONTENT")) {
                 submitChatReport(
                     reason: "PROHIBITED_CONTENT"
                 )
             }
 
-            Button("Мошенничество") {
+            Button(iosT(language, "FRAUD")) {
                 submitChatReport(
                     reason: "FRAUD"
                 )
             }
 
-            Button("Оскорбления или угрозы") {
+            Button(iosT(language, "HARASSMENT_OR_THREATS")) {
                 submitChatReport(
                     reason: "HARASSMENT"
                 )
             }
 
-            Button("Спам") {
+            Button(iosT(language, "SPAM")) {
                 submitChatReport(
                     reason: "SPAM"
                 )
             }
 
-            Button("Другое") {
+            Button(iosT(language, "OTHER")) {
                 submitChatReport(
                     reason: "OTHER"
                 )
             }
 
             Button(
-                "Отмена",
+                iosT(language, "CANCEL"),
                 role: .cancel
             ) {
             }
         }
         .confirmationDialog(
-            "Заблокировать пользователя?",
+            iosT(language, "BLOCK_USER_QUESTION"),
             isPresented: $showBlockConfirmation,
             titleVisibility: .visible
         ) {
             Button(
-                "Заблокировать",
+                iosT(language, "BLOCK"),
                 role: .destructive
             ) {
                 moderation.block(
@@ -1147,13 +1157,13 @@ struct ChatConversationIOSView: View {
             }
 
             Button(
-                "Отмена",
+                iosT(language, "CANCEL"),
                 role: .cancel
             ) {
             }
         } message: {
             Text(
-                "Чаты и объявления этого пользователя будут скрыты."
+                iosT(language, "BLOCKED_USER_CONTENT_HIDDEN")
             )
         }
         .onChange(of: moderation.message) { message in
@@ -1184,6 +1194,11 @@ struct ChatConversationIOSView: View {
 private struct ChatMessageBubbleIOSView: View {
     let message: IOSChatMessage
     let isMine: Bool
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -1199,7 +1214,7 @@ private struct ChatMessageBubbleIOSView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 if message.messageType == "PACKAGING_PROOF" && message.photoVerified {
-                    Text("✅ Подтверждение упаковки")
+                    Text(iosT(language, "PACKAGING_CONFIRMATION"))
                         .font(.caption.bold())
                         .foregroundStyle(.green)
                 }
