@@ -1,0 +1,43 @@
+name: WornPantiesShop
+
+options:
+  bundleIdPrefix: com.satanius
+  deploymentTarget:
+    iOS: "15.0"
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    from: "13.0.1"
+
+targets:
+  WornPantiesShop:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.satanius.wornpantiesshop
+        PRODUCT_NAME: WornPantiesShop
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_ENTITLEMENTS: WornPantiesShop.entitlements
+        INFOPLIST_KEY_CFBundleDisplayName: WornPantiesShop
+        TARGETED_DEVICE_FAMILY: "1"
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(inherited)"
+          - "$(SRCROOT)/Frameworks"
+    dependencies:
+      - framework: Frameworks/Shared.framework
+        embed: false
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: Firebase
+        product: FirebaseMessaging
