@@ -323,7 +323,7 @@ struct BlockedUsersIOSView: View {
             Group {
                 if viewModel.loading {
                     ProgressView(
-                        iosT(language, "LOADING")
+                        iosT(language, "LOADING_PROGRESS")
                     )
                 } else if let error =
                     viewModel.errorMessage
