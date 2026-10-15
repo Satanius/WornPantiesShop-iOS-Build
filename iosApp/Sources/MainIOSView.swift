@@ -106,10 +106,17 @@ final class MainIOSViewModel: ObservableObject {
     @Published var loading = true
     @Published var errorMessage: String?
     @Published var favoritesError: String?
+    @Published var totalUnreadCount = 0
+    @Published var pendingSellerOrdersCount = 0
 
     private var listener: ListenerRegistration?
     private var favoritesListener: ListenerRegistration?
     private var blockedUsersListener: ListenerRegistration?
+    private var buyerChatsListener: ListenerRegistration?
+    private var sellerChatsListener: ListenerRegistration?
+    private var sellerOrdersListener: ListenerRegistration?
+    private var buyerUnreadCounts: [String: Int] = [:]
+    private var sellerUnreadCounts: [String: Int] = [:]
 
     init() {
         loadProfile()
@@ -119,9 +126,15 @@ final class MainIOSViewModel: ObservableObject {
         listener?.remove()
         favoritesListener?.remove()
         blockedUsersListener?.remove()
+        buyerChatsListener?.remove()
+        sellerChatsListener?.remove()
+        sellerOrdersListener?.remove()
         listener = nil
         favoritesListener = nil
         blockedUsersListener = nil
+        buyerChatsListener = nil
+        sellerChatsListener = nil
+        sellerOrdersListener = nil
     }
 
     func reload() {
@@ -146,6 +159,7 @@ final class MainIOSViewModel: ObservableObject {
 
         listenFavorites(uid: uid)
         listenBlockedUsers(uid: uid)
+        listenRealtimeCounters(uid: uid)
 
         Firestore.firestore()
             .collection("users")
@@ -170,6 +184,91 @@ final class MainIOSViewModel: ObservableObject {
                     self.listenAnnouncements(country: loadedCountry)
                 }
             }
+    }
+
+    private func listenRealtimeCounters(uid: String) {
+        buyerChatsListener?.remove()
+        sellerChatsListener?.remove()
+        sellerOrdersListener?.remove()
+        buyerUnreadCounts = [:]
+        sellerUnreadCounts = [:]
+        totalUnreadCount = 0
+        pendingSellerOrdersCount = 0
+
+        let chats = Firestore.firestore()
+            .collection("chats")
+
+        buyerChatsListener = chats
+            .whereField("buyerId", isEqualTo: uid)
+            .addSnapshotListener { [weak self] snapshot, _ in
+                let values = Dictionary(
+                    uniqueKeysWithValues:
+                        (snapshot?.documents ?? []).map { document in
+                            let count =
+                                (document.data()["unreadCount_\(uid)"]
+                                    as? NSNumber)?.intValue
+                                ?? 0
+                            return (document.documentID, count)
+                        }
+                )
+
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.buyerUnreadCounts = values
+                    self.publishUnreadCount()
+                }
+            }
+
+        sellerChatsListener = chats
+            .whereField("sellerId", isEqualTo: uid)
+            .addSnapshotListener { [weak self] snapshot, _ in
+                let values = Dictionary(
+                    uniqueKeysWithValues:
+                        (snapshot?.documents ?? []).map { document in
+                            let count =
+                                (document.data()["unreadCount_\(uid)"]
+                                    as? NSNumber)?.intValue
+                                ?? 0
+                            return (document.documentID, count)
+                        }
+                )
+
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.sellerUnreadCounts = values
+                    self.publishUnreadCount()
+                }
+            }
+
+        sellerOrdersListener = Firestore.firestore()
+            .collection("orders")
+            .whereField("sellerId", isEqualTo: uid)
+            .addSnapshotListener { [weak self] snapshot, _ in
+                let count = (snapshot?.documents ?? []).reduce(0) {
+                    partial, document in
+
+                    let status =
+                        document.data()["status"] as? String
+                        ?? ""
+
+                    return partial
+                        + (status == "PENDING_SELLER" ? 1 : 0)
+                }
+
+                DispatchQueue.main.async {
+                    self?.pendingSellerOrdersCount = count
+                }
+            }
+    }
+
+    private func publishUnreadCount() {
+        var merged = buyerUnreadCounts
+
+        for (chatId, count) in sellerUnreadCounts {
+            merged[chatId] = count
+        }
+
+        totalUnreadCount = merged.values.reduce(0, +)
     }
 
     func toggleFavorite(announcementId: String) {
@@ -374,16 +473,37 @@ struct MainIOSView: View {
                         Button {
                             showProfile = true
                         } label: {
-                            if let avatarFileId = viewModel.avatarFileId {
-                                WorkerPhotoView(
-                                    fileId: avatarFileId,
-                                    cornerRadius: 18
-                                )
-                                .frame(width: 36, height: 36)
-                            } else {
-                                Image(systemName: "person.crop.circle")
-                                    .font(.system(size: 28))
-                                    .foregroundStyle(accentPink)
+                            ZStack(alignment: .topTrailing) {
+                                if let avatarFileId = viewModel.avatarFileId {
+                                    WorkerPhotoView(
+                                        fileId: avatarFileId,
+                                        cornerRadius: 18
+                                    )
+                                    .frame(width: 36, height: 36)
+                                } else {
+                                    Image(systemName: "person.crop.circle")
+                                        .font(.system(size: 28))
+                                        .foregroundStyle(accentPink)
+                                }
+
+                                if viewModel.pendingSellerOrdersCount > 0 {
+                                    Text(
+                                        viewModel.pendingSellerOrdersCount > 99
+                                            ? "99+"
+                                            : String(
+                                                viewModel.pendingSellerOrdersCount
+                                            )
+                                    )
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 5)
+                                    .frame(minHeight: 16)
+                                    .background(
+                                        Capsule()
+                                            .fill(accentPink)
+                                    )
+                                    .offset(x: 8, y: -8)
+                                }
                             }
                         }
                     }
@@ -413,6 +533,7 @@ struct MainIOSView: View {
                 .tabItem {
                     Label("Чаты", systemImage: "bubble.left.and.bubble.right")
                 }
+                .badge(viewModel.totalUnreadCount)
                 .tag(2)
         }
         .tint(accentPink)
