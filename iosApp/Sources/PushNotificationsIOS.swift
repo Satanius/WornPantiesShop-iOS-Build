@@ -17,8 +17,8 @@ extension Notification.Name {
 final class IOSAppDelegate:
     NSObject,
     UIApplicationDelegate,
-    UNUserNotificationCenterDelegate,
-    MessagingDelegate
+    @preconcurrency UNUserNotificationCenterDelegate,
+    @preconcurrency MessagingDelegate
 {
     func application(
         _ application: UIApplication,
