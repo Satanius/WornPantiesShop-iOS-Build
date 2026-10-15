@@ -47,6 +47,7 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
     @Published var selectedSenderIndex = -1
     @Published var selectedWarehouseIndex = -1
     @Published var loading = false
+    @Published var connected = false
     @Published var errorMessage: String?
 
     func apiKeyChanged() {
@@ -54,59 +55,86 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
         warehouses = []
         selectedSenderIndex = -1
         selectedWarehouseIndex = -1
+        connected = false
         errorMessage = nil
     }
 
     func verifyKey() {
-        let cleanKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanKey =
+            apiKey.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
 
-        guard !loading, cleanKey.count >= 10 else {
+        guard
+            !loading,
+            cleanKey.count >= 10
+        else {
             return
         }
 
         loading = true
+        connected = false
         errorMessage = nil
         senders = []
         warehouses = []
         selectedSenderIndex = -1
         selectedWarehouseIndex = -1
 
-        post(
-            path: "/delivery-profile/novaposhta/options",
-            payload: [
-                "apiKey": cleanKey
-            ]
-        ) { [weak self] result in
+        Task { [weak self] in
             guard let self else {
                 return
             }
 
-            self.loading = false
-
-            switch result {
-            case .failure(let error):
-                self.errorMessage =
-                    error.localizedDescription.isEmpty
-                    ? iosT(
-                        iosCurrentLanguage(),
-                        "FAILED_TO_VERIFY_API_KEY"
+            do {
+                let json =
+                    try await self.post(
+                        path:
+                            "/delivery-profile/novaposhta/options",
+                        payload: [
+                            "apiKey": cleanKey
+                        ]
                     )
-                    : error.localizedDescription
 
-            case .success(let json):
-                let rawOptions = json["options"] as? [[String: Any]] ?? []
+                let rawOptions =
+                    json["options"]
+                        as? [[String: Any]]
+                        ?? []
 
-                self.senders = rawOptions.map {
-                    IOSNovaPoshtaSenderOption(
-                        senderRef: $0["senderRef"] as? String ?? "",
-                        senderName: $0["senderName"] as? String ?? "",
-                        cityRef: $0["cityRef"] as? String ?? "",
-                        cityName: $0["cityName"] as? String ?? "",
-                        contactSenderRef: $0["contactSenderRef"] as? String ?? "",
-                        contactName: $0["contactName"] as? String ?? "",
-                        phone: $0["phone"] as? String ?? ""
-                    )
-                }
+                self.senders =
+                    rawOptions.map {
+                        IOSNovaPoshtaSenderOption(
+                            senderRef:
+                                $0["senderRef"]
+                                    as? String
+                                    ?? "",
+                            senderName:
+                                $0["senderName"]
+                                    as? String
+                                    ?? "",
+                            cityRef:
+                                $0["cityRef"]
+                                    as? String
+                                    ?? "",
+                            cityName:
+                                $0["cityName"]
+                                    as? String
+                                    ?? "",
+                            contactSenderRef:
+                                $0["contactSenderRef"]
+                                    as? String
+                                    ?? "",
+                            contactName:
+                                $0["contactName"]
+                                    as? String
+                                    ?? "",
+                            phone:
+                                $0["phone"]
+                                    as? String
+                                    ?? ""
+                        )
+                    }
+
+                self.loading = false
 
                 if self.senders.isEmpty {
                     self.errorMessage =
@@ -118,60 +146,93 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
                     self.selectedSenderIndex = 0
                     self.loadWarehousesForSelectedSender()
                 }
+            } catch {
+                self.loading = false
+                self.errorMessage =
+                    error.localizedDescription.isEmpty
+                    ? iosT(
+                        iosCurrentLanguage(),
+                        "FAILED_TO_VERIFY_API_KEY"
+                    )
+                    : error.localizedDescription
             }
         }
     }
 
-    func selectSender(_ index: Int) {
+    func selectSender(
+        _ index: Int
+    ) {
         selectedSenderIndex = index
         warehouses = []
         selectedWarehouseIndex = -1
         errorMessage = nil
 
-        guard senders.indices.contains(index) else {
+        guard
+            senders.indices.contains(index)
+        else {
             return
         }
 
         loadWarehousesForSelectedSender()
     }
 
-    func connect(
-        completion: @escaping (Bool) -> Void
-    ) {
+    func connect() {
         guard
             !loading,
-            senders.indices.contains(selectedSenderIndex),
-            warehouses.indices.contains(selectedWarehouseIndex)
+            senders.indices.contains(
+                selectedSenderIndex
+            ),
+            warehouses.indices.contains(
+                selectedWarehouseIndex
+            )
         else {
             return
         }
 
-        let sender = senders[selectedSenderIndex]
-        let warehouse = warehouses[selectedWarehouseIndex]
-        let cleanKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sender =
+            senders[selectedSenderIndex]
+        let warehouse =
+            warehouses[selectedWarehouseIndex]
+        let cleanKey =
+            apiKey.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
 
         loading = true
+        connected = false
         errorMessage = nil
 
-        post(
-            path: "/delivery-profile/novaposhta",
-            payload: [
-                "apiKey": cleanKey,
-                "senderCityRef": sender.cityRef,
-                "senderRef": sender.senderRef,
-                "senderAddressRef": warehouse.ref,
-                "contactSenderRef": sender.contactSenderRef,
-                "senderPhone": sender.phone
-            ]
-        ) { [weak self] result in
+        Task { [weak self] in
             guard let self else {
                 return
             }
 
-            self.loading = false
+            do {
+                _ =
+                    try await self.post(
+                        path:
+                            "/delivery-profile/novaposhta",
+                        payload: [
+                            "apiKey": cleanKey,
+                            "senderCityRef":
+                                sender.cityRef,
+                            "senderRef":
+                                sender.senderRef,
+                            "senderAddressRef":
+                                warehouse.ref,
+                            "contactSenderRef":
+                                sender.contactSenderRef,
+                            "senderPhone":
+                                sender.phone
+                        ]
+                    )
 
-            switch result {
-            case .failure(let error):
+                self.loading = false
+                self.errorMessage = nil
+                self.connected = true
+            } catch {
+                self.loading = false
+                self.connected = false
                 self.errorMessage =
                     error.localizedDescription.isEmpty
                     ? iosT(
@@ -179,21 +240,21 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
                         "FAILED_TO_CONNECT_NOVA_POSHTA"
                     )
                     : error.localizedDescription
-                completion(false)
-
-            case .success:
-                self.errorMessage = nil
-                completion(true)
             }
         }
     }
 
     private func loadWarehousesForSelectedSender() {
-        guard senders.indices.contains(selectedSenderIndex) else {
+        guard
+            senders.indices.contains(
+                selectedSenderIndex
+            )
+        else {
             return
         }
 
-        let sender = senders[selectedSenderIndex]
+        let sender =
+            senders[selectedSenderIndex]
 
         guard !sender.cityRef.isEmpty else {
             errorMessage =
@@ -204,26 +265,66 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
             return
         }
 
+        let cleanKey =
+            apiKey.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
         loading = true
         errorMessage = nil
         warehouses = []
         selectedWarehouseIndex = -1
 
-        post(
-            path: "/delivery-profile/novaposhta/warehouses",
-            payload: [
-                "apiKey": apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
-                "cityRef": sender.cityRef
-            ]
-        ) { [weak self] result in
+        Task { [weak self] in
             guard let self else {
                 return
             }
 
-            self.loading = false
+            do {
+                let json =
+                    try await self.post(
+                        path:
+                            "/delivery-profile/novaposhta/warehouses",
+                        payload: [
+                            "apiKey": cleanKey,
+                            "cityRef": sender.cityRef
+                        ]
+                    )
 
-            switch result {
-            case .failure(let error):
+                let rawWarehouses =
+                    json["warehouses"]
+                        as? [[String: Any]]
+                        ?? []
+
+                self.warehouses =
+                    rawWarehouses.map {
+                        IOSNovaPoshtaWarehouseOption(
+                            ref:
+                                $0["ref"]
+                                    as? String
+                                    ?? "",
+                            number:
+                                $0["number"]
+                                    as? String
+                                    ?? "",
+                            description:
+                                $0["description"]
+                                    as? String
+                                    ?? "",
+                            shortAddress:
+                                $0["shortAddress"]
+                                    as? String
+                                    ?? ""
+                        )
+                    }
+
+                self.loading = false
+
+                if self.warehouses.count == 1 {
+                    self.selectedWarehouseIndex = 0
+                }
+            } catch {
+                self.loading = false
                 self.errorMessage =
                     error.localizedDescription.isEmpty
                     ? iosT(
@@ -231,186 +332,204 @@ private final class IOSNovaPoshtaConnectModel: ObservableObject {
                         "FAILED_TO_LOAD_BRANCHES"
                     )
                     : error.localizedDescription
-
-            case .success(let json):
-                let rawWarehouses =
-                    json["warehouses"] as? [[String: Any]] ?? []
-
-                self.warehouses = rawWarehouses.map {
-                    IOSNovaPoshtaWarehouseOption(
-                        ref: $0["ref"] as? String ?? "",
-                        number: $0["number"] as? String ?? "",
-                        description: $0["description"] as? String ?? "",
-                        shortAddress: $0["shortAddress"] as? String ?? ""
-                    )
-                }
-
-                if self.warehouses.count == 1 {
-                    self.selectedWarehouseIndex = 0
-                }
             }
         }
     }
 
     private func post(
         path: String,
-        payload: [String: Any],
-        completion: @escaping (Result<[String: Any], Error>) -> Void
-    ) {
-        guard let user = Auth.auth().currentUser else {
-            completion(
-                .failure(
-                    NSError(
-                        domain: "NovaPoshta",
-                        code: 1,
-                        userInfo: [
-                            NSLocalizedDescriptionKey:
-                                iosT(
-                                    iosCurrentLanguage(),
-                                    "USER_NOT_AUTHORIZED"
-                                )
-                        ]
-                    )
-                )
+        payload: [String: Any]
+    ) async throws -> [String: Any] {
+        guard
+            let user =
+                Auth.auth()
+                    .currentUser
+        else {
+            throw NSError(
+                domain: "NovaPoshta",
+                code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        iosT(
+                            iosCurrentLanguage(),
+                            "USER_NOT_AUTHORIZED"
+                        )
+                ]
             )
-            return
         }
 
-        user.getIDTokenForcingRefresh(false) {
-            token,
-            tokenError in
+        let token =
+            try await withCheckedThrowingContinuation {
+                (
+                    continuation:
+                        CheckedContinuation<
+                            String,
+                            Error
+                        >
+                ) in
 
-            if let tokenError {
-                DispatchQueue.main.async {
-                    completion(.failure(tokenError))
+                user.getIDTokenForcingRefresh(
+                    false
+                ) {
+                    token,
+                    error in
+
+                    if let error {
+                        continuation.resume(
+                            throwing: error
+                        )
+                        return
+                    }
+
+                    guard
+                        let token,
+                        !token.isEmpty
+                    else {
+                        continuation.resume(
+                            throwing:
+                                NSError(
+                                    domain:
+                                        "NovaPoshta",
+                                    code: 2,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey:
+                                            iosT(
+                                                iosCurrentLanguage(),
+                                                "FAILED_TO_GET_FIREBASE_ID_TOKEN"
+                                            )
+                                    ]
+                                )
+                        )
+                        return
+                    }
+
+                    continuation.resume(
+                        returning: token
+                    )
                 }
-                return
             }
 
-            guard
-                let token,
-                !token.isEmpty,
-                let url = URL(
-                    string: iosNovaPoshtaWorkerURL + path
+        guard
+            let url =
+                URL(
+                    string:
+                        iosNovaPoshtaWorkerURL
+                        + path
                 ),
-                let body = try? JSONSerialization.data(
+            let body =
+                try? JSONSerialization.data(
                     withJSONObject: payload
                 )
-            else {
-                DispatchQueue.main.async {
-                    completion(
-                        .failure(
-                            NSError(
-                                domain: "NovaPoshta",
-                                code: 2,
-                                userInfo: [
-                                    NSLocalizedDescriptionKey:
-                                        iosT(
-                                            iosCurrentLanguage(),
-                                            "FAILED_TO_PREPARE_REQUEST"
-                                        )
-                                ]
-                            )
+        else {
+            throw NSError(
+                domain: "NovaPoshta",
+                code: 3,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        iosT(
+                            iosCurrentLanguage(),
+                            "FAILED_TO_PREPARE_REQUEST"
                         )
-                    )
-                }
-                return
-            }
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.timeoutInterval = 45
-            request.httpBody = body
-            request.setValue(
-                "Bearer \(token)",
-                forHTTPHeaderField: "Authorization"
+                ]
             )
-            request.setValue(
-                "application/json",
-                forHTTPHeaderField: "Content-Type"
-            )
-            request.setValue(
-                "application/json",
-                forHTTPHeaderField: "Accept"
-            )
-
-            URLSession.shared
-                .dataTask(with: request) {
-                    data,
-                    response,
-                    networkError in
-
-                    if let networkError {
-                        DispatchQueue.main.async {
-                            completion(.failure(networkError))
-                        }
-                        return
-                    }
-
-                    guard let http = response as? HTTPURLResponse else {
-                        DispatchQueue.main.async {
-                            completion(
-                                .failure(
-                                    NSError(
-                                        domain: "NovaPoshta",
-                                        code: 3,
-                                        userInfo: [
-                                            NSLocalizedDescriptionKey:
-                                                iosT(
-                                                    iosCurrentLanguage(),
-                                                    "SERVER_DID_NOT_RETURN_HTTP_RESPONSE"
-                                                )
-                                        ]
-                                    )
-                                )
-                            )
-                        }
-                        return
-                    }
-
-                    let json =
-                        data.flatMap {
-                            try? JSONSerialization.jsonObject(
-                                with: $0
-                            ) as? [String: Any]
-                        } ?? [:]
-
-                    let success =
-                        (200...299).contains(http.statusCode)
-                        && (json["success"] as? Bool) == true
-
-                    if !success {
-                        let message =
-                            json["error"] as? String
-                            ?? iosT(
-                                iosCurrentLanguage(),
-                                "SERVER_ERROR_HTTP",
-                                String(http.statusCode)
-                            )
-
-                        DispatchQueue.main.async {
-                            completion(
-                                .failure(
-                                    NSError(
-                                        domain: "NovaPoshta",
-                                        code: http.statusCode,
-                                        userInfo: [
-                                            NSLocalizedDescriptionKey:
-                                                message
-                                        ]
-                                    )
-                                )
-                            )
-                        }
-                        return
-                    }
-
-                    DispatchQueue.main.async {
-                        completion(.success(json))
-                    }
-                }
-                .resume()
         }
+
+        var request =
+            URLRequest(
+                url: url
+            )
+
+        request.httpMethod = "POST"
+        request.timeoutInterval = 45
+        request.httpBody = body
+
+        request.setValue(
+            "Bearer \(token)",
+            forHTTPHeaderField:
+                "Authorization"
+        )
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField:
+                "Content-Type"
+        )
+
+        request.setValue(
+            "application/json",
+            forHTTPHeaderField:
+                "Accept"
+        )
+
+        let (
+            data,
+            response
+        ) =
+            try await URLSession.shared.data(
+                for: request
+            )
+
+        guard
+            let http =
+                response
+                    as? HTTPURLResponse
+        else {
+            throw NSError(
+                domain: "NovaPoshta",
+                code: 4,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        iosT(
+                            iosCurrentLanguage(),
+                            "SERVER_DID_NOT_RETURN_HTTP_RESPONSE"
+                        )
+                ]
+            )
+        }
+
+        let json =
+            (
+                try? JSONSerialization
+                    .jsonObject(
+                        with: data
+                    )
+            ) as? [String: Any]
+            ?? [:]
+
+        let success =
+            (200...299)
+                .contains(
+                    http.statusCode
+                )
+            && (
+                json["success"]
+                    as? Bool
+                    ?? false
+            )
+
+        guard success else {
+            let message =
+                json["error"]
+                    as? String
+                ?? iosT(
+                    iosCurrentLanguage(),
+                    "SERVER_ERROR_HTTP",
+                    String(
+                        http.statusCode
+                    )
+                )
+
+            throw NSError(
+                domain: "NovaPoshta",
+                code: http.statusCode,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        message
+                ]
+            )
+        }
+
+        return json
     }
 }
 
@@ -586,14 +705,7 @@ struct IOSNovaPoshtaConnectView: View {
                     }
 
                     Button {
-                        model.connect { success in
-                            guard success else {
-                                return
-                            }
-
-                            onConnected()
-                            dismiss()
-                        }
+                        model.connect()
                     } label: {
                         HStack {
                             if
@@ -650,5 +762,15 @@ struct IOSNovaPoshtaConnectView: View {
             }
         }
         .navigationViewStyle(.stack)
+        .onChange(
+            of: model.connected
+        ) { connected in
+            guard connected else {
+                return
+            }
+
+            onConnected()
+            dismiss()
+        }
     }
 }
