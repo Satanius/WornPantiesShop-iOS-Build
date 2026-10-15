@@ -513,6 +513,7 @@ struct MyListingsIOSView: View {
     @StateObject private var model = MyListingsIOSViewModel()
     @State private var editing: IOSAnnouncement?
     @State private var deleting: IOSAnnouncement?
+    @State private var boosting: IOSAnnouncement?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -554,6 +555,15 @@ struct MyListingsIOSView: View {
                             .disabled(model.deletingId != nil)
 
                             Button {
+                                boosting = item
+                            } label: {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .foregroundStyle(.pink)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(model.deletingId != nil)
+
+                            Button {
                                 deleting = item
                             } label: {
                                 if model.deletingId == item.id {
@@ -584,6 +594,9 @@ struct MyListingsIOSView: View {
             EditAnnouncementIOSView(announcement: item) {
                 editing = nil
             }
+        }
+        .sheet(item: $boosting) { item in
+            IOSBoostView(announcement: item)
         }
         .alert(item: $deleting) { item in
             Alert(
