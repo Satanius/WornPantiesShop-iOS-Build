@@ -102,12 +102,14 @@ final class MainIOSViewModel: ObservableObject {
     @Published var avatarFileId: String?
     @Published var announcements: [IOSAnnouncement] = []
     @Published var favoriteIds: Set<String> = []
+    @Published var blockedUserIds: Set<String> = []
     @Published var loading = true
     @Published var errorMessage: String?
     @Published var favoritesError: String?
 
     private var listener: ListenerRegistration?
     private var favoritesListener: ListenerRegistration?
+    private var blockedUsersListener: ListenerRegistration?
 
     init() {
         loadProfile()
@@ -116,8 +118,10 @@ final class MainIOSViewModel: ObservableObject {
     func stop() {
         listener?.remove()
         favoritesListener?.remove()
+        blockedUsersListener?.remove()
         listener = nil
         favoritesListener = nil
+        blockedUsersListener = nil
     }
 
     func reload() {
@@ -137,6 +141,7 @@ final class MainIOSViewModel: ObservableObject {
         }
 
         listenFavorites(uid: uid)
+        listenBlockedUsers(uid: uid)
 
         Firestore.firestore()
             .collection("users")
@@ -230,6 +235,26 @@ final class MainIOSViewModel: ObservableObject {
             }
     }
 
+    private func listenBlockedUsers(uid: String) {
+        blockedUsersListener?.remove()
+
+        blockedUsersListener = Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .collection("blockedUsers")
+            .addSnapshotListener { [weak self] snapshot, _ in
+                Task { @MainActor in
+                    guard let self else {
+                        return
+                    }
+
+                    self.blockedUserIds = Set(
+                        snapshot?.documents.map { $0.documentID } ?? []
+                    )
+                }
+            }
+    }
+
     private func listenAnnouncements(country: String) {
         listener?.remove()
 
@@ -277,8 +302,14 @@ struct MainIOSView: View {
         blue: 99.0 / 255.0
     )
 
-    private var favoriteAnnouncements: [IOSAnnouncement] {
+    private var visibleAnnouncements: [IOSAnnouncement] {
         viewModel.announcements.filter {
+            !viewModel.blockedUserIds.contains($0.authorId)
+        }
+    }
+
+    private var favoriteAnnouncements: [IOSAnnouncement] {
+        visibleAnnouncements.filter {
             viewModel.favoriteIds.contains($0.id)
                 && $0.availabilityStatus == "AVAILABLE"
         }
@@ -288,7 +319,7 @@ struct MainIOSView: View {
         TabView(selection: $selectedTab) {
             NavigationView {
                 announcementsContent(
-                    items: viewModel.announcements,
+                    items: visibleAnnouncements,
                     emptyTitle: "Пока нет объявлений",
                     emptyIcon: "shippingbox"
                 )
