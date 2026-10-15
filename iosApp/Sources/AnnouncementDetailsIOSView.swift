@@ -14,6 +14,11 @@ struct AnnouncementDetailsIOSView: View {
     @StateObject private var moderation = IOSModerationViewModel()
     @State private var showReportReasons = false
     @State private var showBlockConfirmation = false
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -35,7 +40,7 @@ struct AnnouncementDetailsIOSView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(item.title.isEmpty ? "Без названия" : item.title)
+                    Text(item.title.isEmpty ? iosT(language, "UNTITLED") : item.title)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(.white)
 
@@ -47,20 +52,20 @@ struct AnnouncementDetailsIOSView: View {
 
                     Divider()
 
-                    Text("Информация об объявлении")
+                    Text(iosT(language, "LISTING_INFORMATION"))
                         .font(.headline)
                         .foregroundStyle(accentPink)
 
-                    DetailLine(label: "Тип", value: item.type)
-                    DetailLine(label: "Размер", value: item.size)
-                    DetailLine(label: "Цвет", value: item.color)
-                    DetailLine(label: "Возраст модели", value: String(item.age))
-                    DetailLine(label: "Дней носили", value: String(item.daysWorn))
-                    DetailLine(label: "Девственница", value: item.isVirgin ? "Да" : "Нет")
+                    DetailLine(label: iosT(language, "TYPE"), value: item.type)
+                    DetailLine(label: iosT(language, "SIZE"), value: item.size)
+                    DetailLine(label: iosT(language, "COLOR"), value: item.color)
+                    DetailLine(label: iosT(language, "MODEL_AGE"), value: String(item.age))
+                    DetailLine(label: iosT(language, "DAYS_WORN"), value: String(item.daysWorn))
+                    DetailLine(label: iosT(language, "VIRGIN"), value: item.isVirgin ? iosT(language, "YES") : iosT(language, "NO"))
 
                     if item.createdAt > 0 {
                         DetailLine(
-                            label: "Дата публикации",
+                            label: iosT(language, "PUBLICATION_DATE"),
                             value: formattedDate(item.createdAt)
                         )
                     }
@@ -68,7 +73,7 @@ struct AnnouncementDetailsIOSView: View {
                     if !item.deliveryServices.isEmpty {
                         Divider()
 
-                        Text("Доставка")
+                        Text(iosT(language, "DELIVERY_2"))
                             .font(.headline)
                             .foregroundStyle(accentPink)
 
@@ -79,7 +84,7 @@ struct AnnouncementDetailsIOSView: View {
                     if !item.description.isEmpty {
                         Divider()
 
-                        Text("Описание")
+                        Text(iosT(language, "DESCRIPTION"))
                             .font(.headline)
                             .foregroundStyle(accentPink)
 
@@ -97,7 +102,7 @@ struct AnnouncementDetailsIOSView: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Text(isOwnAnnouncement ? "Это ваше объявление" : "Написать продавцу")
+                                Text(isOwnAnnouncement ? iosT(language, "THIS_IS_YOUR_LISTING") : iosT(language, "MESSAGE_SELLER"))
                                     .fontWeight(.bold)
                             }
                         }
@@ -119,7 +124,7 @@ struct AnnouncementDetailsIOSView: View {
                     Button {
                         showCheckout = true
                     } label: {
-                        Text(isOwnAnnouncement ? "Это ваше объявление" : "Купить")
+                        Text(isOwnAnnouncement ? iosT(language, "THIS_IS_YOUR_LISTING") : iosT(language, "BUY"))
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
@@ -131,7 +136,7 @@ struct AnnouncementDetailsIOSView: View {
                     .disabled(isOwnAnnouncement)
 
                     if item.country != "UA" {
-                        Text("Автоматическое оформление доставки пока доступно только для Украины.")
+                        Text(iosT(language, "AUTO_DELIVERY_ONLY_UKRAINE"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -144,7 +149,7 @@ struct AnnouncementDetailsIOSView: View {
                                 showReportReasons = true
                             } label: {
                                 Label(
-                                    "Пожаловаться",
+                                    iosT(language, "REPORT"),
                                     systemImage: "exclamationmark.triangle"
                                 )
                                 .frame(maxWidth: .infinity)
@@ -157,7 +162,7 @@ struct AnnouncementDetailsIOSView: View {
                                 showBlockConfirmation = true
                             } label: {
                                 Label(
-                                    "Заблокировать",
+                                    iosT(language, "BLOCK"),
                                     systemImage: "person.crop.circle.badge.xmark"
                                 )
                                 .frame(maxWidth: .infinity)
@@ -187,11 +192,11 @@ struct AnnouncementDetailsIOSView: View {
                 .padding(16)
             }
             .background(Color(red: 18.0 / 255.0, green: 18.0 / 255.0, blue: 18.0 / 255.0))
-            .navigationTitle("Объявление")
+            .navigationTitle(iosT(language, "LISTING_2"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") {
+                    Button(iosT(language, "CLOSE")) {
                         dismiss()
                     }
                 }
@@ -208,53 +213,53 @@ struct AnnouncementDetailsIOSView: View {
             ChatConversationIOSView(chat: chat)
         }
         .confirmationDialog(
-            "Причина жалобы",
+            iosT(language, "REPORT_REASON"),
             isPresented: $showReportReasons,
             titleVisibility: .visible
         ) {
-            Button("Запрещённый контент") {
+            Button(iosT(language, "PROHIBITED_CONTENT")) {
                 submitReport(
                     reason: "PROHIBITED_CONTENT"
                 )
             }
 
-            Button("Мошенничество") {
+            Button(iosT(language, "FRAUD")) {
                 submitReport(
                     reason: "FRAUD"
                 )
             }
 
-            Button("Оскорбления или угрозы") {
+            Button(iosT(language, "HARASSMENT_OR_THREATS")) {
                 submitReport(
                     reason: "HARASSMENT"
                 )
             }
 
-            Button("Спам") {
+            Button(iosT(language, "SPAM")) {
                 submitReport(
                     reason: "SPAM"
                 )
             }
 
-            Button("Другое") {
+            Button(iosT(language, "OTHER")) {
                 submitReport(
                     reason: "OTHER"
                 )
             }
 
             Button(
-                "Отмена",
+                iosT(language, "CANCEL"),
                 role: .cancel
             ) {
             }
         }
         .confirmationDialog(
-            "Заблокировать продавца?",
+            iosT(language, "BLOCK_SELLER_QUESTION"),
             isPresented: $showBlockConfirmation,
             titleVisibility: .visible
         ) {
             Button(
-                "Заблокировать",
+                iosT(language, "BLOCK"),
                 role: .destructive
             ) {
                 moderation.block(
@@ -263,13 +268,13 @@ struct AnnouncementDetailsIOSView: View {
             }
 
             Button(
-                "Отмена",
+                iosT(language, "CANCEL"),
                 role: .cancel
             ) {
             }
         } message: {
             Text(
-                "Его объявления и чаты будут скрыты для вас."
+                iosT(language, "SELLER_CONTENT_WILL_BE_HIDDEN")
             )
         }
     }
@@ -294,7 +299,10 @@ struct AnnouncementDetailsIOSView: View {
             !buyerId.isEmpty
         else {
             chatError =
-                "Заказ оформлен, но не удалось открыть чат: пользователь не авторизован."
+                iosT(
+                    language,
+                    "ORDER_PLACED_CHAT_USER_NOT_AUTHORIZED"
+                )
             return
         }
 
@@ -306,7 +314,10 @@ struct AnnouncementDetailsIOSView: View {
             buyerId != sellerId
         else {
             chatError =
-                "Заказ оформлен, но не удалось открыть чат."
+                iosT(
+                    language,
+                    "ORDER_PLACED_CHAT_OPEN_FAILED"
+                )
             return
         }
 
@@ -348,8 +359,11 @@ struct AnnouncementDetailsIOSView: View {
                 DispatchQueue.main.async {
                     openingChat = false
                     chatError =
-                        "Заказ оформлен, но чат не открылся: "
-                        + error.localizedDescription
+                        iosT(
+                            language,
+                            "ORDER_PLACED_CHAT_ERROR",
+                            error.localizedDescription
+                        )
                 }
                 return
             }
@@ -365,8 +379,11 @@ struct AnnouncementDetailsIOSView: View {
                         DispatchQueue.main.async {
                             openingChat = false
                             chatError =
-                                "Заказ оформлен, но чат не открылся: "
-                                + error.localizedDescription
+                                iosT(
+                                    language,
+                                    "ORDER_PLACED_CHAT_ERROR",
+                                    error.localizedDescription
+                                )
                         }
                         return
                     }
@@ -419,7 +436,10 @@ struct AnnouncementDetailsIOSView: View {
                 .document(chatId)
 
         let text =
-            "Здравствуйте! Я хочу купить этот товар."
+            iosT(
+                language,
+                "HELLO_I_D_LIKE_TO_BUY_THIS"
+            )
 
         let now =
             Int64(
@@ -488,8 +508,11 @@ struct AnnouncementDetailsIOSView: View {
 
                 if let error {
                     chatError =
-                        "Заказ оформлен, но первое сообщение не отправилось: "
-                        + error.localizedDescription
+                        iosT(
+                            language,
+                            "ORDER_PLACED_FIRST_MESSAGE_FAILED",
+                            error.localizedDescription
+                        )
                     return
                 }
 
@@ -601,7 +624,11 @@ struct AnnouncementDetailsIOSView: View {
 
     private func openSellerChat() {
         guard let buyerId = Auth.auth().currentUser?.uid else {
-            chatError = "Сначала войдите в аккаунт."
+            chatError =
+            iosT(
+                language,
+                "PLEASE_SIGN_IN_FIRST"
+            )
             return
         }
 
@@ -693,9 +720,9 @@ struct AnnouncementDetailsIOSView: View {
             .map { service in
                 switch service {
                 case "NovaPoshta":
-                    return "Новая почта"
+                    return iosT(language, "NOVA_POSHTA_RU_NAME")
                 case "Ukrposhta":
-                    return "Укрпочта"
+                    return iosT(language, "UKRPOSHTA")
                 default:
                     return service
                 }
@@ -745,6 +772,11 @@ private struct CheckoutIOSView: View {
     @State private var rulesAccepted = false
     @State private var submitting = false
     @State private var errorMessage: String?
+    @AppStorage("appLanguage") private var checkoutLanguageRaw = "RU"
+
+    private var checkoutLanguage: IOSAppLanguage {
+        iosLanguage(from: checkoutLanguageRaw)
+    }
 
     private let workerURL = "https://telegram-photo-storage.sataniusdarkc.workers.dev"
 
@@ -770,15 +802,15 @@ private struct CheckoutIOSView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(item.title.isEmpty ? "Товар" : item.title)
+                    Text(item.title.isEmpty ? iosT(checkoutLanguage, "UNKNOWN_ITEM") : item.title)
                         .font(.headline)
 
-                    Text("Наложенный платёж: " + formattedPrice)
+                    Text(iosT(checkoutLanguage, "CASH_ON_DELIVERY") + " " + formattedPrice)
                         .font(.headline)
                         .foregroundStyle(.green)
 
                     if item.country != "UA" {
-                        Text("Автоматическая доставка для этой страны пока недоступна.")
+                        Text(iosT(checkoutLanguage, "AUTOMATIC_SHIPPING_IS_NOT_YET_AVAILABLE_FOR"))
                             .foregroundStyle(.red)
                     } else {
                         deliveryForm
@@ -798,7 +830,7 @@ private struct CheckoutIOSView: View {
                                 ProgressView()
                                     .tint(.black)
                             } else {
-                                Text("Оформить заказ")
+                                Text(iosT(checkoutLanguage, "PLACE_ORDER"))
                                     .fontWeight(.bold)
                             }
                         }
@@ -815,11 +847,11 @@ private struct CheckoutIOSView: View {
                 .padding(20)
             }
             .background(Color(red: 18.0 / 255.0, green: 18.0 / 255.0, blue: 18.0 / 255.0))
-            .navigationTitle("Оформление")
+            .navigationTitle(iosT(checkoutLanguage, "CHECKOUT_SHORT"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Отмена") {
+                    Button(iosT(checkoutLanguage, "CANCEL")) {
                         dismiss()
                     }
                     .disabled(submitting)
@@ -831,50 +863,50 @@ private struct CheckoutIOSView: View {
 
     @ViewBuilder
     private var deliveryForm: some View {
-        Text("Служба доставки")
+        Text(iosT(checkoutLanguage, "DELIVERY_SERVICE"))
             .font(.headline)
             .foregroundStyle(accentPink)
 
-        Picker("Служба доставки", selection: $selectedDeliveryService) {
+        Picker(iosT(checkoutLanguage, "DELIVERY_SERVICE"), selection: $selectedDeliveryService) {
             ForEach(item.deliveryServices, id: \.self) { service in
                 Text(deliveryName(service)).tag(service)
             }
         }
         .pickerStyle(.menu)
 
-        TextField("ФИО получателя", text: $recipientName)
+        TextField(iosT(checkoutLanguage, "RECIPIENTS_FULL_NAME"), text: $recipientName)
             .textContentType(.name)
             .iosField()
 
-        TextField("Телефон, например +380...", text: $recipientPhone)
+        TextField(iosT(checkoutLanguage, "PHONE_EXAMPLE"), text: $recipientPhone)
             .keyboardType(.phonePad)
             .textContentType(.telephoneNumber)
             .iosField()
 
-        TextField("Город / населённый пункт", text: $recipientCity)
+        TextField(iosT(checkoutLanguage, "CITY_LOCALITY"), text: $recipientCity)
             .iosField()
 
-        TextField("Область (необязательно)", text: $recipientArea)
+        TextField(iosT(checkoutLanguage, "AREA_OPTIONAL"), text: $recipientArea)
             .iosField()
 
         if selectedDeliveryService == "Ukrposhta" {
-            TextField("Почтовый индекс", text: $recipientPostalCode)
+            TextField(iosT(checkoutLanguage, "POSTAL_CODE"), text: $recipientPostalCode)
                 .keyboardType(.numberPad)
                 .iosField()
         }
 
         TextField(
             selectedDeliveryService == "Meest"
-                ? "Номер отделения Meest"
+                ? iosT(checkoutLanguage, "MEEST_BRANCH_NUMBER_LONG")
                 : selectedDeliveryService == "Ukrposhta"
-                    ? "Отделение Укрпочты"
-                    : "Отделение / почтомат Новой почты",
+                    ? iosT(checkoutLanguage, "UKRPOSHTA_BRANCH")
+                    : iosT(checkoutLanguage, "NOVA_POSHTA_BRANCH_PARCEL_LOCKER"),
             text: $recipientDepartment
         )
         .iosField()
 
         Toggle(
-            "Я проверил данные получателя и принимаю правила оформления заказа",
+            iosT(checkoutLanguage, "CHECKED_RECIPIENT_DATA_ACCEPT_RULES"),
             isOn: $rulesAccepted
         )
         .tint(accentPink)
@@ -905,9 +937,9 @@ private struct CheckoutIOSView: View {
     private func deliveryName(_ service: String) -> String {
         switch service {
         case "NovaPoshta":
-            return "Новая почта"
+            return iosT(checkoutLanguage, "NOVA_POSHTA_RU_NAME")
         case "Ukrposhta":
-            return "Укрпочта"
+            return iosT(checkoutLanguage, "UKRPOSHTA")
         default:
             return service
         }
@@ -919,7 +951,7 @@ private struct CheckoutIOSView: View {
         }
 
         guard let user = Auth.auth().currentUser else {
-            errorMessage = "Сначала войдите в аккаунт."
+            errorMessage = iosT(checkoutLanguage, "PLEASE_SIGN_IN_FIRST")
             return
         }
 
@@ -933,7 +965,7 @@ private struct CheckoutIOSView: View {
             }
 
             guard let token, !token.isEmpty else {
-                finishWithError("Не удалось получить Firebase ID Token.")
+                finishWithError(iosT(checkoutLanguage, "FAILED_TO_GET_FIREBASE_ID_TOKEN"))
                 return
             }
 
@@ -960,7 +992,7 @@ private struct CheckoutIOSView: View {
                 let url = URL(string: workerURL + "/create-order"),
                 let data = try? JSONSerialization.data(withJSONObject: body)
             else {
-                finishWithError("Не удалось подготовить запрос.")
+                finishWithError(iosT(checkoutLanguage, "FAILED_TO_PREPARE_REQUEST"))
                 return
             }
 
@@ -978,7 +1010,7 @@ private struct CheckoutIOSView: View {
                 }
 
                 guard let http = response as? HTTPURLResponse else {
-                    finishWithError("Сервер не вернул HTTP-ответ.")
+                    finishWithError(iosT(checkoutLanguage, "SERVER_DID_NOT_RETURN_HTTP_RESPONSE"))
                     return
                 }
 
@@ -988,14 +1020,14 @@ private struct CheckoutIOSView: View {
 
                 if !(200...299).contains(http.statusCode) {
                     let message = json?["error"] as? String
-                        ?? "Ошибка сервера \(http.statusCode)"
+                        ?? iosT(checkoutLanguage, "SERVER_ERROR_HTTP", String(http.statusCode))
                     finishWithError(message)
                     return
                 }
 
                 guard (json?["success"] as? Bool) == true else {
                     let message = json?["error"] as? String
-                        ?? "Не удалось оформить заказ."
+                        ?? iosT(checkoutLanguage, "FAILED_TO_PLACE_ORDER")
                     finishWithError(message)
                     return
                 }
