@@ -153,7 +153,7 @@ final class MainIOSViewModel: ObservableObject {
     private func loadProfile() {
         guard let uid = Auth.auth().currentUser?.uid else {
             loading = false
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -441,8 +441,8 @@ struct MainIOSView: View {
                 announcementsContent(
                     items: filteredAnnouncements,
                     emptyTitle: searchQuery.isEmpty && !filters.isActive
-                        ? "Пока нет объявлений"
-                        : "Ничего не найдено",
+                        ? iosT(language, "NO_LISTINGS_YET")
+                        : iosT(language, "NOTHING_FOUND"),
                     emptyIcon: "shippingbox"
                 )
                 .navigationTitle("Worn panties shop")
@@ -541,7 +541,7 @@ struct MainIOSView: View {
             NavigationView {
                 announcementsContent(
                     items: favoriteAnnouncements,
-                    emptyTitle: "Нет избранных объявлений",
+                    emptyTitle: iosT(language, "NO_FAVORITE_LISTINGS"),
                     emptyIcon: "heart"
                 )
                 .navigationTitle(
@@ -660,12 +660,12 @@ struct MainIOSView: View {
             if viewModel.loading {
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Загрузка объявлений…")
+                    Text(iosT(language, "LOADING_LISTINGS"))
                         .foregroundStyle(.secondary)
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
-                    Text("Не удалось загрузить данные")
+                    Text(iosT(language, "FAILED_TO_LOAD_DATA"))
                         .font(.headline)
 
                     Text(error)
@@ -673,7 +673,7 @@ struct MainIOSView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
 
-                    Button("Повторить") {
+                    Button(iosT(language, "RETRY")) {
                         viewModel.reload()
                     }
                     .buttonStyle(.borderedProminent)
@@ -690,7 +690,7 @@ struct MainIOSView: View {
                         .font(.headline)
 
                     if let country = viewModel.country {
-                        Text("Страна: \(country)")
+                        Text(iosT(language, "COUNTRY_VALUE", country))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -740,6 +740,11 @@ private struct AnnouncementRow: View {
     let isFavorite: Bool
     let onFavoriteToggle: () -> Void
     let onOpen: () -> Void
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -769,7 +774,7 @@ private struct AnnouncementRow: View {
                 }
 
                 VStack(alignment: .leading, spacing: 7) {
-                    Text(item.title.isEmpty ? "Без названия" : item.title)
+                    Text(item.title.isEmpty ? iosT(language, "UNTITLED") : item.title)
                         .font(.headline)
                         .foregroundStyle(.white)
                         .lineLimit(2)
@@ -782,7 +787,7 @@ private struct AnnouncementRow: View {
                             .lineLimit(1)
                     }
 
-                    Text("Размер: \(item.size)")
+                    Text(iosT(language, "SIZE_VALUE", item.size))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -848,10 +853,17 @@ private struct ProfileIOSView: View {
     @State private var showSubmittedReports = false
     @State private var showRules = false
     @State private var showFeedback = false
+    @State private var showNovaPoshtaConnect = false
     @State private var showAvatarPicker = false
     @State private var uploadingAvatar = false
     @State private var avatarError: String?
+    @State private var profileMessage: String?
     @State private var currentAvatarFileId: String?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     init(
         country: String,
@@ -923,17 +935,23 @@ private struct ProfileIOSView: View {
                         .foregroundStyle(.red)
                 }
 
-                Text(Auth.auth().currentUser?.email ?? "Пользователь")
+                if let profileMessage {
+                    Text(profileMessage)
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
+
+                Text(Auth.auth().currentUser?.email ?? iosT(language, "USER"))
                     .font(.headline)
 
-                Text(country == "UA" ? "Украина" : country)
+                Text(country == "UA" ? iosT(language, "UKRAINE") : country)
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 10) {
                     Button {
                         showMyListings = true
                     } label: {
-                        Label("Мои объявления", systemImage: "rectangle.stack")
+                        Label(iosT(language, "MY_LISTINGS"), systemImage: "rectangle.stack")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
@@ -943,7 +961,7 @@ private struct ProfileIOSView: View {
                         showSellerOrders = true
                     } label: {
                         Label(
-                            "Мои заказы",
+                            iosT(language, "MY_ORDERS"),
                             systemImage: "shippingbox"
                         )
                         .frame(maxWidth: .infinity)
@@ -955,7 +973,7 @@ private struct ProfileIOSView: View {
                         showBuyerOrders = true
                     } label: {
                         Label(
-                            "Мои покупки",
+                            iosT(language, "MY_PURCHASES"),
                             systemImage: "bag"
                         )
                         .frame(maxWidth: .infinity)
@@ -963,11 +981,29 @@ private struct ProfileIOSView: View {
                     .buttonStyle(.bordered)
                     .tint(accentPink)
 
+                    if country == "UA" {
+                        Button {
+                            profileMessage = nil
+                            showNovaPoshtaConnect = true
+                        } label: {
+                            Label(
+                                iosT(
+                                    language,
+                                    "CONNECT_NOVA_POSHTA"
+                                ),
+                                systemImage: "shippingbox"
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(accentPink)
+                    }
+
                     Button {
                         showRules = true
                     } label: {
                         Label(
-                            "Правила сервиса",
+                            iosT(language, "SERVICE_RULES"),
                             systemImage: "exclamationmark.triangle"
                         )
                         .frame(maxWidth: .infinity)
@@ -979,7 +1015,7 @@ private struct ProfileIOSView: View {
                         showFeedback = true
                     } label: {
                         Label(
-                            "Предложения и обратная связь",
+                            iosT(language, "SUGGESTIONS_AND_FEEDBACK"),
                             systemImage: "text.bubble"
                         )
                         .frame(maxWidth: .infinity)
@@ -991,7 +1027,7 @@ private struct ProfileIOSView: View {
                         showBlockedUsers = true
                     } label: {
                         Label(
-                            "Заблокированные",
+                            iosT(language, "BLOCKED_USERS"),
                             systemImage: "person.crop.circle.badge.xmark"
                         )
                         .frame(maxWidth: .infinity)
@@ -1003,7 +1039,7 @@ private struct ProfileIOSView: View {
                         showSubmittedReports = true
                     } label: {
                         Label(
-                            "Мои жалобы",
+                            iosT(language, "MY_REPORTS"),
                             systemImage: "exclamationmark.bubble"
                         )
                         .frame(maxWidth: .infinity)
@@ -1017,17 +1053,17 @@ private struct ProfileIOSView: View {
                 Button(role: .destructive) {
                     onLogout()
                 } label: {
-                    Text("Выйти из аккаунта")
+                    Text(iosT(language, "LOG_OUT"))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .tint(accentPink)
             }
             .padding(24)
-            .navigationTitle("Профиль")
+            .navigationTitle(iosT(language, "PROFILE"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Готово") {
+                    Button(iosT(language, "READY")) {
                         dismiss()
                     }
                 }
@@ -1068,6 +1104,15 @@ private struct ProfileIOSView: View {
         }
         .sheet(isPresented: $showFeedback) {
             IOSFeedbackView()
+        }
+        .sheet(isPresented: $showNovaPoshtaConnect) {
+            IOSNovaPoshtaConnectView {
+                profileMessage =
+                    iosT(
+                        language,
+                        "NOVA_POSHTA_CONNECTED_SUCCESSFULLY"
+                    )
+            }
         }
         .sheet(isPresented: $showAvatarPicker) {
             IOSProfilePhotoPicker { data in
