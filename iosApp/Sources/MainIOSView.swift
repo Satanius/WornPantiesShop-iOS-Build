@@ -294,6 +294,9 @@ struct MainIOSView: View {
     @State private var selectedTab = 0
     @State private var showProfile = false
     @State private var showAddAnnouncement = false
+    @State private var showFilters = false
+    @State private var searchQuery = ""
+    @State private var filters = IOSAnnouncementFilters()
     @State private var selectedAnnouncement: IOSAnnouncement?
 
     private let accentPink = Color(
@@ -308,6 +311,13 @@ struct MainIOSView: View {
         }
     }
 
+    private var filteredAnnouncements: [IOSAnnouncement] {
+        filters.apply(
+            to: visibleAnnouncements,
+            searchQuery: searchQuery
+        )
+    }
+
     private var favoriteAnnouncements: [IOSAnnouncement] {
         visibleAnnouncements.filter {
             viewModel.favoriteIds.contains($0.id)
@@ -319,12 +329,33 @@ struct MainIOSView: View {
         TabView(selection: $selectedTab) {
             NavigationView {
                 announcementsContent(
-                    items: visibleAnnouncements,
-                    emptyTitle: "Пока нет объявлений",
+                    items: filteredAnnouncements,
+                    emptyTitle: searchQuery.isEmpty && !filters.isActive
+                        ? "Пока нет объявлений"
+                        : "Ничего не найдено",
                     emptyIcon: "shippingbox"
                 )
                 .navigationTitle("Worn panties shop")
+                .searchable(
+                    text: $searchQuery,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: "Поиск объявлений"
+                )
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showFilters = true
+                        } label: {
+                            Image(
+                                systemName: filters.isActive
+                                    ? "line.3.horizontal.decrease.circle.fill"
+                                    : "line.3.horizontal.decrease.circle"
+                            )
+                            .font(.system(size: 23))
+                            .foregroundStyle(accentPink)
+                        }
+                    }
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             showAddAnnouncement = true
@@ -420,6 +451,9 @@ struct MainIOSView: View {
             AddAnnouncementIOSView(country: viewModel.country ?? "UA") {
                 showAddAnnouncement = false
             }
+        }
+        .sheet(isPresented: $showFilters) {
+            AnnouncementFiltersIOSView(filters: $filters)
         }
         .sheet(isPresented: $showProfile) {
             ProfileIOSView(
