@@ -18,16 +18,21 @@ struct WornPantiesShopIOSApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authenticated {
-                    MainIOSView {
-                        Task { @MainActor in
-                            await IOSPushNotifications
-                                .clearCurrentTokenForCurrentUser()
+                if
+                    authenticated,
+                    let userId = Auth.auth().currentUser?.uid
+                {
+                    IOSDisclaimerGate(userId: userId) {
+                        MainIOSView {
+                            Task { @MainActor in
+                                await IOSPushNotifications
+                                    .clearCurrentTokenForCurrentUser()
 
-                            do {
-                                try Auth.auth().signOut()
-                                authenticated = false
-                            } catch {
+                                do {
+                                    try Auth.auth().signOut()
+                                    authenticated = false
+                                } catch {
+                                }
                             }
                         }
                     }
