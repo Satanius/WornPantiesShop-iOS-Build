@@ -96,8 +96,11 @@ private final class ChatsIOSViewModel: ObservableObject {
 
     private var buyerChats: [String: IOSChatSummary] = [:]
     private var sellerChats: [String: IOSChatSummary] = [:]
+    private var blockedUserIds: Set<String> = []
+    private var currentUid = ""
     private var buyerListener: ListenerRegistration?
     private var sellerListener: ListenerRegistration?
+    private var blockedUsersListener: ListenerRegistration?
 
     init() {
         start()
@@ -111,6 +114,25 @@ private final class ChatsIOSViewModel: ObservableObject {
             errorMessage = "Пользователь не авторизован."
             return
         }
+
+        currentUid = uid
+
+        blockedUsersListener = Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .collection("blockedUsers")
+            .addSnapshotListener { [weak self] snapshot, _ in
+                DispatchQueue.main.async {
+                    guard let self else {
+                        return
+                    }
+
+                    self.blockedUserIds = Set(
+                        snapshot?.documents.map { $0.documentID } ?? []
+                    )
+                    self.publish()
+                }
+            }
 
         let collection = Firestore.firestore().collection("chats")
 
@@ -172,8 +194,10 @@ private final class ChatsIOSViewModel: ObservableObject {
     func stop() {
         buyerListener?.remove()
         sellerListener?.remove()
+        blockedUsersListener?.remove()
         buyerListener = nil
         sellerListener = nil
+        blockedUsersListener = nil
     }
 
     private func publish() {
@@ -183,9 +207,20 @@ private final class ChatsIOSViewModel: ObservableObject {
             merged[key] = value
         }
 
-        chats = merged.values.sorted {
-            $0.updatedAt > $1.updatedAt
-        }
+        chats = merged.values
+            .filter { chat in
+                let otherUserId =
+                    chat.buyerId == currentUid
+                        ? chat.sellerId
+                        : chat.buyerId
+
+                return !blockedUserIds.contains(
+                    otherUserId
+                )
+            }
+            .sorted {
+                $0.updatedAt > $1.updatedAt
+            }
 
         errorMessage = nil
     }
@@ -703,7 +738,10 @@ struct ChatConversationIOSView: View {
     let chat: IOSChatSummary
 
     @StateObject private var viewModel: ChatConversationIOSViewModel
+    @StateObject private var moderation = IOSModerationViewModel()
     @State private var showPhotoPicker = false
+    @State private var showReportReasons = false
+    @State private var showBlockConfirmation = false
     @Environment(\.dismiss) private var dismiss
 
     private let accentPink = Color(
@@ -711,6 +749,22 @@ struct ChatConversationIOSView: View {
         green: 30.0 / 255.0,
         blue: 99.0 / 255.0
     )
+
+    private var otherUserId: String {
+        guard
+            let uid =
+                Auth.auth()
+                    .currentUser?
+                    .uid,
+            !uid.isEmpty
+        else {
+            return ""
+        }
+
+        return uid == chat.buyerId
+            ? chat.sellerId
+            : chat.buyerId
+    }
 
     init(chat: IOSChatSummary) {
         self.chat = chat
@@ -727,6 +781,20 @@ struct ChatConversationIOSView: View {
                         .font(.footnote)
                         .foregroundStyle(.red)
                         .padding(10)
+                }
+
+                if let message = moderation.message {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundStyle(.green)
+                        .padding(.horizontal, 10)
+                }
+
+                if let error = moderation.errorMessage {
+                    Text(error)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 10)
                 }
 
                 ScrollViewReader { proxy in
@@ -813,6 +881,36 @@ struct ChatConversationIOSView: View {
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        Button {
+                            showReportReasons = true
+                        } label: {
+                            Label(
+                                "Пожаловаться",
+                                systemImage: "exclamationmark.triangle"
+                            )
+                        }
+
+                        Button(role: .destructive) {
+                            showBlockConfirmation = true
+                        } label: {
+                            Label(
+                                "Заблокировать пользователя",
+                                systemImage: "person.crop.circle.badge.xmark"
+                            )
+                        }
+                    } label: {
+                        Image(
+                            systemName: "ellipsis.circle"
+                        )
+                    }
+                    .disabled(
+                        moderation.isWorking
+                            || otherUserId.isEmpty
+                    )
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Закрыть") {
                         dismiss()
@@ -827,12 +925,93 @@ struct ChatConversationIOSView: View {
                 viewModel.sendPhoto(image)
             }
         }
+        .confirmationDialog(
+            "Причина жалобы",
+            isPresented: $showReportReasons,
+            titleVisibility: .visible
+        ) {
+            Button("Запрещённый контент") {
+                submitChatReport(
+                    reason: "PROHIBITED_CONTENT"
+                )
+            }
+
+            Button("Мошенничество") {
+                submitChatReport(
+                    reason: "FRAUD"
+                )
+            }
+
+            Button("Оскорбления или угрозы") {
+                submitChatReport(
+                    reason: "HARASSMENT"
+                )
+            }
+
+            Button("Спам") {
+                submitChatReport(
+                    reason: "SPAM"
+                )
+            }
+
+            Button("Другое") {
+                submitChatReport(
+                    reason: "OTHER"
+                )
+            }
+
+            Button(
+                "Отмена",
+                role: .cancel
+            ) {
+            }
+        }
+        .confirmationDialog(
+            "Заблокировать пользователя?",
+            isPresented: $showBlockConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(
+                "Заблокировать",
+                role: .destructive
+            ) {
+                moderation.block(
+                    userId: otherUserId
+                )
+            }
+
+            Button(
+                "Отмена",
+                role: .cancel
+            ) {
+            }
+        } message: {
+            Text(
+                "Чаты и объявления этого пользователя будут скрыты."
+            )
+        }
+        .onChange(of: moderation.message) { message in
+            if message == "Пользователь заблокирован." {
+                dismiss()
+            }
+        }
         .onAppear {
             viewModel.start()
         }
         .onDisappear {
             viewModel.stop()
         }
+    }
+
+    private func submitChatReport(
+        reason: String
+    ) {
+        moderation.report(
+            reportedUserId: otherUserId,
+            announcementId: chat.announcementId,
+            chatId: chat.id,
+            reason: reason
+        )
     }
 }
 
