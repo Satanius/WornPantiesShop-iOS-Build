@@ -1927,6 +1927,231 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ru: "Я проверил данные получателя и принимаю правила оформления заказа",
         ua: "Я перевірив дані отримувача та приймаю правила оформлення замовлення",
         en: "I checked the recipient details and accept the order rules"
+    ),    "NEW_LISTING": IOSLocalizedText(
+        ru: "Новое объявление",
+        ua: "Нове оголошення",
+        en: "New listing"
+    ),
+    "EDITING": IOSLocalizedText(
+        ru: "Редактирование",
+        ua: "Редагування",
+        en: "Editing"
+    ),
+    "PRICE": IOSLocalizedText(
+        ru: "Цена",
+        ua: "Ціна",
+        en: "Price"
+    ),
+    "PUBLISH": IOSLocalizedText(
+        ru: "Опубликовать",
+        ua: "Опублікувати",
+        en: "Publish"
+    ),
+    "MY_LISTINGS": IOSLocalizedText(
+        ru: "Мои объявления",
+        ua: "Мої оголошення",
+        en: "My listings"
+    ),
+    "ONLY_OWN_LISTING_CAN_BE_DELETED": IOSLocalizedText(
+        ru: "Можно удалить только своё объявление.",
+        ua: "Можна видалити лише своє оголошення.",
+        en: "You can delete only your own listing."
+    ),
+    "ADD_MAXIMUM_5_PHOTOS": IOSLocalizedText(
+        ru: "Можно добавить максимум 5 фото.",
+        ua: "Можна додати максимум 5 фото.",
+        en: "You can add a maximum of 5 photos."
+    ),
+    "NEED_1_TO_5_PHOTOS": IOSLocalizedText(
+        ru: "Нужно добавить от 1 до 5 фото.",
+        ua: "Потрібно додати від 1 до 5 фото.",
+        en: "You need to add 1 to 5 photos."
+    ),
+    "PHOTOS_MISSING_REQUIRED_EXIF": IOSLocalizedText(
+        ru: "Одно или несколько фото не содержат нужные EXIF-данные камеры.",
+        ua: "Одне або кілька фото не містять потрібних EXIF-даних камери.",
+        en: "One or more photos are missing the required camera EXIF data."
+    ),
+    "ALL_PHOTOS_SAME_CAMERA": IOSLocalizedText(
+        ru: "Все фото должны быть сделаны одной камерой.",
+        ua: "Усі фото мають бути зроблені однією камерою.",
+        en: "All photos must be taken with the same camera."
+    ),
+    "FAILED_TO_PREPARE_PHOTOS_400KB": IOSLocalizedText(
+        ru: "Не удалось подготовить одно или несколько фото до 400 КБ.",
+        ua: "Не вдалося підготувати одне або кілька фото до 400 КБ.",
+        en: "Failed to prepare one or more photos to 400 KB."
+    ),
+    "EDIT_PHOTOS_UNCHANGED": IOSLocalizedText(
+        ru: "Фото при редактировании остаются прежними, как в Android-версии.",
+        ua: "Фото під час редагування залишаються без змін, як в Android-версії.",
+        en: "Photos remain unchanged while editing, as in the Android version."
+    ),
+    "PHOTOS_COUNT": IOSLocalizedText(
+        ru: "Фото: %s / 5",
+        ua: "Фото: %s / 5",
+        en: "Photos: %s / 5"
+    ),
+    "ADD_PHOTO": IOSLocalizedText(
+        ru: "Добавить фото",
+        ua: "Додати фото",
+        en: "Add photo"
+    ),
+    "PHOTO_EXIF_REQUIREMENTS": IOSLocalizedText(
+        ru: "Нужно 1–5 фото. Все фото должны содержать EXIF и быть сделаны одной камерой.",
+        ua: "Потрібно 1–5 фото. Усі фото мають містити EXIF і бути зроблені однією камерою.",
+        en: "You need 1–5 photos. All photos must contain EXIF and be taken with the same camera."
+    ),
+    "FAILED_TO_PREPARE_PHOTO_UPLOAD": IOSLocalizedText(
+        ru: "Не удалось подготовить загрузку фото.",
+        ua: "Не вдалося підготувати завантаження фото.",
+        en: "Failed to prepare photo upload."
+    ),
+    "TYPE_SHORTS": IOSLocalizedText(
+        ru: "Шортики",
+        ua: "Шортики",
+        en: "Boyshorts"
+    ),
+    "TYPE_THONGS": IOSLocalizedText(
+        ru: "Стринги",
+        ua: "Стрінги",
+        en: "Thongs"
+    ),
+    "TYPE_TANGA": IOSLocalizedText(
+        ru: "Танга",
+        ua: "Танга",
+        en: "Tanga"
+    ),
+    "TYPE_BIKINI": IOSLocalizedText(
+        ru: "Бикини",
+        ua: "Бікіні",
+        en: "Bikini"
+    ),
+    "TYPE_BRIEFS": IOSLocalizedText(
+        ru: "Слипы",
+        ua: "Сліпи",
+        en: "Briefs"
+    ),
+    "TYPE_BRAZILIAN": IOSLocalizedText(
+        ru: "Бразилиана",
+        ua: "Бразиліана",
+        en: "Brazilian"
+    ),
+    "TYPE_LACE": IOSLocalizedText(
+        ru: "Кружевные",
+        ua: "Мереживні",
+        en: "Lace"
+    ),
+    "COLOR_BLACK": IOSLocalizedText(
+        ru: "Черный",
+        ua: "Чорний",
+        en: "Black"
+    ),
+    "COLOR_RED": IOSLocalizedText(
+        ru: "Красный",
+        ua: "Червоний",
+        en: "Red"
+    ),
+    "COLOR_PINK": IOSLocalizedText(
+        ru: "Розовый",
+        ua: "Рожевий",
+        en: "Pink"
+    ),
+    "COLOR_WHITE": IOSLocalizedText(
+        ru: "Белый",
+        ua: "Білий",
+        en: "White"
+    ),
+    "COLOR_BLUE": IOSLocalizedText(
+        ru: "Синий",
+        ua: "Синій",
+        en: "Blue"
+    ),
+    "COLOR_OTHER": IOSLocalizedText(
+        ru: "Другой",
+        ua: "Інший",
+        en: "Other"
+    ),    "LOG_OUT": IOSLocalizedText(
+        ru: "Выйти из аккаунта",
+        ua: "Вийти з акаунта",
+        en: "Log out"
+    ),
+    "UKRAINE": IOSLocalizedText(
+        ru: "Украина",
+        ua: "Україна",
+        en: "Ukraine"
+    ),
+    "LOADING_LISTINGS": IOSLocalizedText(
+        ru: "Загрузка объявлений…",
+        ua: "Завантаження оголошень…",
+        en: "Loading listings…"
+    ),
+    "FAILED_TO_LOAD_DATA": IOSLocalizedText(
+        ru: "Не удалось загрузить данные",
+        ua: "Не вдалося завантажити дані",
+        en: "Failed to load data"
+    ),
+    "COUNTRY_VALUE": IOSLocalizedText(
+        ru: "Страна: %s",
+        ua: "Країна: %s",
+        en: "Country: %s"
+    ),
+    "SIZE_VALUE": IOSLocalizedText(
+        ru: "Размер: %s",
+        ua: "Розмір: %s",
+        en: "Size: %s"
+    ),    "ACCEPT_AND_CONTINUE": IOSLocalizedText(
+        ru: "Принять и продолжить",
+        ua: "Прийняти та продовжити",
+        en: "Accept and continue"
+    ),
+    "MESSAGE_TOO_SHORT": IOSLocalizedText(
+        ru: "Сообщение слишком короткое.",
+        ua: "Повідомлення надто коротке.",
+        en: "The message is too short."
+    ),
+    "MESSAGE_TOO_LONG": IOSLocalizedText(
+        ru: "Сообщение слишком длинное.",
+        ua: "Повідомлення надто довге.",
+        en: "The message is too long."
+    ),
+    "FEEDBACK_PROMPT": IOSLocalizedText(
+        ru: "Напишите предложение, сообщите об ошибке или оставьте отзыв о сервисе.",
+        ua: "Напишіть пропозицію, повідомте про помилку або залиште відгук про сервіс.",
+        en: "Share a suggestion, report a bug, or leave feedback about the service."
+    ),
+    "FEEDBACK_TITLE": IOSLocalizedText(
+        ru: "Предложения и обратная связь",
+        ua: "Пропозиції та зворотний зв'язок",
+        en: "Suggestions and feedback"
+    ),    "INVALID_BOOST_PERIOD": IOSLocalizedText(
+        ru: "Недопустимый срок поднятия.",
+        ua: "Недопустимий строк підняття.",
+        en: "Invalid boost period."
+    ),
+    "FAILED_TO_PREPARE_PAYMENT": IOSLocalizedText(
+        ru: "Не удалось подготовить оплату.",
+        ua: "Не вдалося підготувати оплату.",
+        en: "Failed to prepare payment."
+    ),
+    "GO_TO_PAYMENT": IOSLocalizedText(
+        ru: "Перейти к оплате",
+        ua: "Перейти до оплати",
+        en: "Go to payment"
+    ),
+    "PROMOTION": IOSLocalizedText(
+        ru: "Продвижение",
+        ua: "Просування",
+        en: "Promotion"
+    ),    "NO_LISTINGS_YET": IOSLocalizedText(
+        ru: "Пока нет объявлений",
+        ua: "Поки немає оголошень",
+        en: "No listings yet"
+    ),
+    "NOTHING_FOUND": IOSLocalizedText(
+        ru: "Ничего не найдено",
+        ua: "Нічого не знайдено",
+        en: "Nothing found"
     ),
 ]
 
