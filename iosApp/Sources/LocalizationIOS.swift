@@ -1456,6 +1456,478 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "Повідомлення та зміни статусу замовлень",
         en: "Messages and order status updates"
     ),
+    "USER_NOT_AUTHORIZED": IOSLocalizedText(
+        ru: "Пользователь не авторизован.",
+        ua: "Користувач не авторизований.",
+        en: "User is not signed in."
+    ),
+    "FAILED_TO_PREPARE_CHAT_DELETION": IOSLocalizedText(
+        ru: "Не удалось подготовить удаление чата.",
+        ua: "Не вдалося підготувати видалення чату.",
+        en: "Failed to prepare chat deletion."
+    ),
+    "FAILED_TO_DELETE_CHAT": IOSLocalizedText(
+        ru: "Не удалось удалить чат.",
+        ua: "Не вдалося видалити чат.",
+        en: "Failed to delete chat."
+    ),
+    "FAILED_TO_LOAD_CHATS_TITLE": IOSLocalizedText(
+        ru: "Не удалось загрузить чаты",
+        ua: "Не вдалося завантажити чати",
+        en: "Failed to load chats"
+    ),
+    "RETRY": IOSLocalizedText(
+        ru: "Повторить",
+        ua: "Повторити",
+        en: "Retry"
+    ),
+    "DELETE_CHAT_ACTION": IOSLocalizedText(
+        ru: "Удалить чат",
+        ua: "Видалити чат",
+        en: "Delete chat"
+    ),
+    "PHOTO_COMPRESSION_FAILED_400KB": IOSLocalizedText(
+        ru: "Не удалось сжать фото до 400 КБ.",
+        ua: "Не вдалося стиснути фото до 400 КБ.",
+        en: "Failed to compress the photo to 400 KB."
+    ),
+    "FAILED_TO_GET_FIREBASE_ID_TOKEN": IOSLocalizedText(
+        ru: "Не удалось получить Firebase ID Token.",
+        ua: "Не вдалося отримати Firebase ID Token.",
+        en: "Failed to get Firebase ID Token."
+    ),
+    "INVALID_PHOTO_UPLOAD_URL": IOSLocalizedText(
+        ru: "Некорректный адрес загрузки фото.",
+        ua: "Некоректна адреса завантаження фото.",
+        en: "Invalid photo upload URL."
+    ),
+    "SERVER_DID_NOT_RETURN_HTTP_RESPONSE": IOSLocalizedText(
+        ru: "Сервер не вернул HTTP-ответ.",
+        ua: "Сервер не повернув HTTP-відповідь.",
+        en: "The server did not return an HTTP response."
+    ),
+    "PHOTO_UPLOAD_HTTP_ERROR": IOSLocalizedText(
+        ru: "Ошибка загрузки фото %s",
+        ua: "Помилка завантаження фото %s",
+        en: "Photo upload error %s"
+    ),
+    "WORKER_DID_NOT_RETURN_FILE_ID": IOSLocalizedText(
+        ru: "Worker не вернул fileId.",
+        ua: "Worker не повернув fileId.",
+        en: "Worker did not return fileId."
+    ),
+    "PHOTO_MESSAGE": IOSLocalizedText(
+        ru: "📷 Фото",
+        ua: "📷 Фото",
+        en: "📷 Photo"
+    ),
+    "CHAT": IOSLocalizedText(
+        ru: "Чат",
+        ua: "Чат",
+        en: "Chat"
+    ),
+    "REPORT": IOSLocalizedText(
+        ru: "Пожаловаться",
+        ua: "Поскаржитися",
+        en: "Report"
+    ),
+    "BLOCK_USER": IOSLocalizedText(
+        ru: "Заблокировать пользователя",
+        ua: "Заблокувати користувача",
+        en: "Block user"
+    ),
+    "REPORT_REASON": IOSLocalizedText(
+        ru: "Причина жалобы",
+        ua: "Причина скарги",
+        en: "Report reason"
+    ),
+    "PROHIBITED_CONTENT": IOSLocalizedText(
+        ru: "Запрещённый контент",
+        ua: "Заборонений контент",
+        en: "Prohibited content"
+    ),
+    "FRAUD": IOSLocalizedText(
+        ru: "Мошенничество",
+        ua: "Шахрайство",
+        en: "Fraud"
+    ),
+    "HARASSMENT_OR_THREATS": IOSLocalizedText(
+        ru: "Оскорбления или угрозы",
+        ua: "Образи або погрози",
+        en: "Harassment or threats"
+    ),
+    "SPAM": IOSLocalizedText(
+        ru: "Спам",
+        ua: "Спам",
+        en: "Spam"
+    ),
+    "OTHER": IOSLocalizedText(
+        ru: "Другое",
+        ua: "Інше",
+        en: "Other"
+    ),
+    "BLOCK_USER_QUESTION": IOSLocalizedText(
+        ru: "Заблокировать пользователя?",
+        ua: "Заблокувати користувача?",
+        en: "Block user?"
+    ),
+    "BLOCK": IOSLocalizedText(
+        ru: "Заблокировать",
+        ua: "Заблокувати",
+        en: "Block"
+    ),
+    "BLOCKED_USER_CONTENT_HIDDEN": IOSLocalizedText(
+        ru: "Чаты и объявления этого пользователя будут скрыты.",
+        ua: "Чати та оголошення цього користувача будуть приховані.",
+        en: "This user's chats and listings will be hidden."
+    ),
+    "USER_BLOCKED": IOSLocalizedText(
+        ru: "Пользователь заблокирован.",
+        ua: "Користувача заблоковано.",
+        en: "User blocked."
+    ),
+    "PACKAGING_CONFIRMATION": IOSLocalizedText(
+        ru: "✅ Подтверждение упаковки",
+        ua: "✅ Підтвердження пакування",
+        en: "✅ Packaging confirmation"
+    ),    "FAILED_TO_SEND_REPORT": IOSLocalizedText(
+        ru: "Не удалось отправить жалобу.",
+        ua: "Не вдалося надіслати скаргу.",
+        en: "Failed to send report."
+    ),
+    "REPORT_SENT_FOR_REVIEW": IOSLocalizedText(
+        ru: "Жалоба отправлена на проверку.",
+        ua: "Скаргу надіслано на перевірку.",
+        en: "Report sent for review."
+    ),
+    "FAILED_TO_BLOCK_USER": IOSLocalizedText(
+        ru: "Не удалось заблокировать пользователя.",
+        ua: "Не вдалося заблокувати користувача.",
+        en: "Failed to block user."
+    ),
+    "LOADING": IOSLocalizedText(
+        ru: "Загрузка…",
+        ua: "Завантаження…",
+        en: "Loading…"
+    ),
+    "FAILED_TO_LOAD_LIST": IOSLocalizedText(
+        ru: "Не удалось загрузить список",
+        ua: "Не вдалося завантажити список",
+        en: "Failed to load list"
+    ),
+    "NO_BLOCKED_USERS": IOSLocalizedText(
+        ru: "Нет заблокированных пользователей",
+        ua: "Немає заблокованих користувачів",
+        en: "No blocked users"
+    ),
+    "BLOCKED_USERS_APPEAR_HERE": IOSLocalizedText(
+        ru: "Заблокированные пользователи появятся здесь.",
+        ua: "Заблоковані користувачі з'являться тут.",
+        en: "Blocked users will appear here."
+    ),
+    "UNBLOCK": IOSLocalizedText(
+        ru: "Разблокировать",
+        ua: "Розблокувати",
+        en: "Unblock"
+    ),
+    "BLOCKED_USERS": IOSLocalizedText(
+        ru: "Заблокированные",
+        ua: "Заблоковані",
+        en: "Blocked users"
+    ),
+    "UNBLOCK_USER_QUESTION": IOSLocalizedText(
+        ru: "Разблокировать пользователя?",
+        ua: "Розблокувати користувача?",
+        en: "Unblock user?"
+    ),
+    "UNBLOCKED_CONTENT_VISIBLE": IOSLocalizedText(
+        ru: "Его объявления и чаты снова будут видны.",
+        ua: "Його оголошення та чати знову будуть видимі.",
+        en: "Their listings and chats will be visible again."
+    ),
+    "FAILED_TO_LOAD_REPORTS": IOSLocalizedText(
+        ru: "Не удалось загрузить жалобы",
+        ua: "Не вдалося завантажити скарги",
+        en: "Failed to load reports"
+    ),
+    "NO_REPORTS_YET": IOSLocalizedText(
+        ru: "Жалоб пока нет",
+        ua: "Скарг поки немає",
+        en: "No reports yet"
+    ),
+    "SUBMITTED_REPORTS_APPEAR_HERE": IOSLocalizedText(
+        ru: "Отправленные жалобы и их статусы появятся здесь.",
+        ua: "Надіслані скарги та їхні статуси з'являться тут.",
+        en: "Submitted reports and their statuses will appear here."
+    ),
+    "MY_REPORTS": IOSLocalizedText(
+        ru: "Мои жалобы",
+        ua: "Мої скарги",
+        en: "My reports"
+    ),
+    "REPORT_STATUS_OPEN": IOSLocalizedText(
+        ru: "На проверке",
+        ua: "На перевірці",
+        en: "Pending review"
+    ),
+    "REPORT_STATUS_REVIEWING": IOSLocalizedText(
+        ru: "Рассматривается",
+        ua: "Розглядається",
+        en: "Under review"
+    ),
+    "REPORT_STATUS_RESOLVED": IOSLocalizedText(
+        ru: "Рассмотрена",
+        ua: "Розглянута",
+        en: "Resolved"
+    ),
+    "REPORT_STATUS_REJECTED": IOSLocalizedText(
+        ru: "Отклонена",
+        ua: "Відхилена",
+        en: "Rejected"
+    ),
+    "REPORT_STATUS_CLOSED": IOSLocalizedText(
+        ru: "Закрыта",
+        ua: "Закрита",
+        en: "Closed"
+    ),
+    "LISTING_ID_LABEL": IOSLocalizedText(
+        ru: "Объявление: %s",
+        ua: "Оголошення: %s",
+        en: "Listing: %s"
+    ),
+    "CHAT_ID_LABEL": IOSLocalizedText(
+        ru: "Чат: %s",
+        ua: "Чат: %s",
+        en: "Chat: %s"
+    ),
+    "USER_ID_LABEL": IOSLocalizedText(
+        ru: "Пользователь: %s",
+        ua: "Користувач: %s",
+        en: "User: %s"
+    ),    "FAILED_TO_PREPARE_REQUEST": IOSLocalizedText(
+        ru: "Не удалось подготовить запрос.",
+        ua: "Не вдалося підготувати запит.",
+        en: "Failed to prepare request."
+    ),
+    "SERVER_ERROR_HTTP": IOSLocalizedText(
+        ru: "Ошибка сервера %s",
+        ua: "Помилка сервера %s",
+        en: "Server error %s"
+    ),
+    "OPERATION_FAILED": IOSLocalizedText(
+        ru: "Операция не выполнена.",
+        ua: "Операцію не виконано.",
+        en: "Operation failed."
+    ),
+    "PHOTO_MUST_BE_UNDER_400KB": IOSLocalizedText(
+        ru: "Фото должно быть не больше 400 КБ.",
+        ua: "Фото має бути не більше 400 КБ.",
+        en: "The photo must be no larger than 400 KB."
+    ),
+    "WORKER_DID_NOT_RETURN_DELIVERY_DATA": IOSLocalizedText(
+        ru: "Worker не вернул данные доставки.",
+        ua: "Worker не повернув дані доставки.",
+        en: "Worker did not return delivery data."
+    ),
+    "LISTING_HAS_NO_CAMERA_DATA": IOSLocalizedText(
+        ru: "У объявления нет данных проверки камеры.",
+        ua: "В оголошення немає даних перевірки камери.",
+        en: "The listing has no camera verification data."
+    ),
+    "PHOTO_REJECTED_EXIF_AND_DATE_REQUIRED": IOSLocalizedText(
+        ru: "Фото отклонено: нужны EXIF-данные камеры и дата съёмки.",
+        ua: "Фото відхилено: потрібні EXIF-дані камери та дата зйомки.",
+        en: "Photo rejected: camera EXIF data and capture date are required."
+    ),
+    "PHOTO_REJECTED_DIFFERENT_CAMERA": IOSLocalizedText(
+        ru: "Фото отклонено: оно сделано другой камерой.",
+        ua: "Фото відхилено: його зроблено іншою камерою.",
+        en: "Photo rejected: it was taken with a different camera."
+    ),
+    "FAILED_TO_PREPARE_PHOTO_400KB": IOSLocalizedText(
+        ru: "Не удалось подготовить фото до 400 КБ.",
+        ua: "Не вдалося підготувати фото до 400 КБ.",
+        en: "Failed to prepare the photo to 400 KB."
+    ),
+    "CHECK_TRACKING_NUMBER": IOSLocalizedText(
+        ru: "Проверьте номер отправления.",
+        ua: "Перевірте номер відправлення.",
+        en: "Check the tracking number."
+    ),
+    "RECIPIENT": IOSLocalizedText(
+        ru: "Получатель",
+        ua: "Отримувач",
+        en: "Recipient"
+    ),
+    "FULL_NAME": IOSLocalizedText(
+        ru: "ФИО",
+        ua: "ПІБ",
+        en: "Full name"
+    ),
+    "PHONE": IOSLocalizedText(
+        ru: "Телефон",
+        ua: "Телефон",
+        en: "Phone"
+    ),
+    "CITY": IOSLocalizedText(
+        ru: "Город",
+        ua: "Місто",
+        en: "City"
+    ),
+    "AREA": IOSLocalizedText(
+        ru: "Область",
+        ua: "Область",
+        en: "Region"
+    ),
+    "INDEX": IOSLocalizedText(
+        ru: "Индекс",
+        ua: "Індекс",
+        en: "Postal code"
+    ),
+    "BRANCH": IOSLocalizedText(
+        ru: "Отделение",
+        ua: "Відділення",
+        en: "Branch"
+    ),
+    "SAVE_SHIPMENT_NUMBER": IOSLocalizedText(
+        ru: "Сохранить номер отправления",
+        ua: "Зберегти номер відправлення",
+        en: "Save shipment number"
+    ),
+    "BUYER_MUST_CONFIRM_PACKAGING_FIRST": IOSLocalizedText(
+        ru: "Сначала покупатель должен подтвердить фото упаковки.",
+        ua: "Спочатку покупець має підтвердити фото пакування.",
+        en: "The buyer must confirm the packaging photo first."
+    ),
+    "PACKAGING_CONFIRMED_CHECKMARK": IOSLocalizedText(
+        ru: "✓ Упаковка подтверждена",
+        ua: "✓ Пакування підтверджено",
+        en: "✓ Packaging confirmed"
+    ),
+    "PARCEL_ALREADY_AT_BRANCH": IOSLocalizedText(
+        ru: "Посылка уже в отделении.",
+        ua: "Посилка вже у відділенні.",
+        en: "The parcel is already at the pickup point."
+    ),
+    "PARCEL_RETURNING_TO_SELLER": IOSLocalizedText(
+        ru: "Посылка возвращается продавцу.",
+        ua: "Посилка повертається продавцю.",
+        en: "The parcel is returning to the seller."
+    ),
+    "RECEIVED_CHECKMARK": IOSLocalizedText(
+        ru: "✓ Получено",
+        ua: "✓ Отримано",
+        en: "✓ Received"
+    ),
+    "AWAITING_SELLER": IOSLocalizedText(
+        ru: "Ожидает продавца",
+        ua: "Очікує продавця",
+        en: "Waiting for seller"
+    ),
+    "AWAITING_SHIPMENT_NUMBER": IOSLocalizedText(
+        ru: "Ожидает номер отправления",
+        ua: "Очікує номер відправлення",
+        en: "Waiting for shipment number"
+    ),
+    "SHIPMENT_CREATED": IOSLocalizedText(
+        ru: "Отправление создано",
+        ua: "Відправлення створено",
+        en: "Shipment created"
+    ),
+    "REJECTED": IOSLocalizedText(
+        ru: "Отклонено",
+        ua: "Відхилено",
+        en: "Rejected"
+    ),
+    "RETURNING": IOSLocalizedText(
+        ru: "Возвращается",
+        ua: "Повертається",
+        en: "Returning"
+    ),
+    "RETURNED": IOSLocalizedText(
+        ru: "Возвращено",
+        ua: "Повернено",
+        en: "Returned"
+    ),
+    "NOVA_POSHTA_RU_NAME": IOSLocalizedText(
+        ru: "Новая почта",
+        ua: "Нова пошта",
+        en: "Nova Poshta"
+    ),
+    "GENERIC_SHIPMENT_NUMBER": IOSLocalizedText(
+        ru: "Номер отправления",
+        ua: "Номер відправлення",
+        en: "Shipment number"
+    ),    "UNTITLED": IOSLocalizedText(
+        ru: "Без названия",
+        ua: "Без назви",
+        en: "Untitled"
+    ),
+    "THIS_IS_YOUR_LISTING": IOSLocalizedText(
+        ru: "Это ваше объявление",
+        ua: "Це ваше оголошення",
+        en: "This is your listing"
+    ),
+    "AUTO_DELIVERY_ONLY_UKRAINE": IOSLocalizedText(
+        ru: "Автоматическое оформление доставки пока доступно только для Украины.",
+        ua: "Автоматичне оформлення доставки поки доступне лише для України.",
+        en: "Automatic shipping setup is currently available only for Ukraine."
+    ),
+    "BLOCK_SELLER_QUESTION": IOSLocalizedText(
+        ru: "Заблокировать продавца?",
+        ua: "Заблокувати продавця?",
+        en: "Block seller?"
+    ),
+    "SELLER_CONTENT_WILL_BE_HIDDEN": IOSLocalizedText(
+        ru: "Его объявления и чаты будут скрыты для вас.",
+        ua: "Його оголошення та чати будуть приховані для вас.",
+        en: "Their listings and chats will be hidden from you."
+    ),
+    "ORDER_PLACED_CHAT_USER_NOT_AUTHORIZED": IOSLocalizedText(
+        ru: "Заказ оформлен, но не удалось открыть чат: пользователь не авторизован.",
+        ua: "Замовлення оформлено, але не вдалося відкрити чат: користувач не авторизований.",
+        en: "Order placed, but the chat could not be opened: user is not signed in."
+    ),
+    "ORDER_PLACED_CHAT_OPEN_FAILED": IOSLocalizedText(
+        ru: "Заказ оформлен, но не удалось открыть чат.",
+        ua: "Замовлення оформлено, але не вдалося відкрити чат.",
+        en: "Order placed, but the chat could not be opened."
+    ),
+    "ORDER_PLACED_CHAT_ERROR": IOSLocalizedText(
+        ru: "Заказ оформлен, но чат не открылся: %s",
+        ua: "Замовлення оформлено, але чат не відкрився: %s",
+        en: "Order placed, but the chat did not open: %s"
+    ),
+    "ORDER_PLACED_FIRST_MESSAGE_FAILED": IOSLocalizedText(
+        ru: "Заказ оформлен, но первое сообщение не отправилось: %s",
+        ua: "Замовлення оформлено, але перше повідомлення не надіслалося: %s",
+        en: "Order placed, but the first message was not sent: %s"
+    ),
+    "CHECKOUT": IOSLocalizedText(
+        ru: "Оформление",
+        ua: "Оформлення",
+        en: "Checkout"
+    ),
+    "PHONE_EXAMPLE": IOSLocalizedText(
+        ru: "Телефон, например +380...",
+        ua: "Телефон, наприклад +380...",
+        en: "Phone, for example +380..."
+    ),
+    "AREA_OPTIONAL": IOSLocalizedText(
+        ru: "Область (необязательно)",
+        ua: "Область (необов'язково)",
+        en: "Region (optional)"
+    ),
+    "MEEST_BRANCH_NUMBER_LONG": IOSLocalizedText(
+        ru: "Номер отделения Meest",
+        ua: "Номер відділення Meest",
+        en: "Meest branch number"
+    ),
+    "CHECKED_RECIPIENT_DATA_ACCEPT_RULES": IOSLocalizedText(
+        ru: "Я проверил данные получателя и принимаю правила оформления заказа",
+        ua: "Я перевірив дані отримувача та приймаю правила оформлення замовлення",
+        en: "I checked the recipient details and accept the order rules"
+    ),
 ]
 
 func iosT(
@@ -1490,4 +1962,11 @@ func iosLanguage(
     from rawValue: String
 ) -> IOSAppLanguage {
     IOSAppLanguage(rawValue: rawValue) ?? .ru
+}
+func iosCurrentLanguage() -> IOSAppLanguage {
+    iosLanguage(
+        from: UserDefaults.standard.string(
+            forKey: "appLanguage"
+        ) ?? "RU"
+    )
 }
