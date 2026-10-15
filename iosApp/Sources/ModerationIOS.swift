@@ -28,7 +28,7 @@ final class IOSModerationViewModel: ObservableObject {
             !reportedUserId.isEmpty,
             reporterId != reportedUserId
         else {
-            errorMessage = "Не удалось отправить жалобу."
+            errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_SEND_REPORT")
             return
         }
 
@@ -82,7 +82,7 @@ final class IOSModerationViewModel: ObservableObject {
                         error.localizedDescription
                 } else {
                     self.message =
-                        "Жалоба отправлена на проверку."
+                        iosT(iosCurrentLanguage(), "REPORT_SENT_FOR_REVIEW")
                 }
             }
         }
@@ -105,7 +105,7 @@ final class IOSModerationViewModel: ObservableObject {
             currentUid != userId
         else {
             errorMessage =
-                "Не удалось заблокировать пользователя."
+                iosT(iosCurrentLanguage(), "FAILED_TO_BLOCK_USER")
             return
         }
 
@@ -142,7 +142,7 @@ final class IOSModerationViewModel: ObservableObject {
                             error.localizedDescription
                     } else {
                         self.message =
-                            "Пользователь заблокирован."
+                            iosT(iosCurrentLanguage(), "USER_BLOCKED")
                     }
                 }
             }
@@ -199,7 +199,7 @@ final class IOSBlockedUsersViewModel:
         else {
             loading = false
             errorMessage =
-                "Пользователь не авторизован."
+                iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -266,7 +266,7 @@ final class IOSBlockedUsersViewModel:
             !uid.isEmpty
         else {
             errorMessage =
-                "Пользователь не авторизован."
+                iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -303,6 +303,11 @@ struct BlockedUsersIOSView: View {
 
     @State private var pendingUnblock:
         IOSBlockedUser?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     @Environment(\.dismiss)
     private var dismiss
@@ -318,7 +323,7 @@ struct BlockedUsersIOSView: View {
             Group {
                 if viewModel.loading {
                     ProgressView(
-                        "Загрузка…"
+                        iosT(language, "LOADING")
                     )
                 } else if let error =
                     viewModel.errorMessage
@@ -327,7 +332,7 @@ struct BlockedUsersIOSView: View {
                         spacing: 14
                     ) {
                         Text(
-                            "Не удалось загрузить список"
+                            iosT(language, "FAILED_TO_LOAD_LIST")
                         )
                         .font(.headline)
 
@@ -341,7 +346,7 @@ struct BlockedUsersIOSView: View {
                             )
 
                         Button(
-                            "Повторить"
+                            iosT(language, "RETRY")
                         ) {
                             viewModel.start()
                         }
@@ -369,12 +374,12 @@ struct BlockedUsersIOSView: View {
                         )
 
                         Text(
-                            "Нет заблокированных пользователей"
+                            iosT(language, "NO_BLOCKED_USERS")
                         )
                         .font(.headline)
 
                         Text(
-                            "Заблокированные пользователи появятся здесь."
+                            iosT(language, "BLOCKED_USERS_APPEAR_HERE")
                         )
                         .font(.footnote)
                         .foregroundStyle(
@@ -411,7 +416,7 @@ struct BlockedUsersIOSView: View {
                                 spacing: 4
                             ) {
                                 Text(
-                                    "Пользователь"
+                                    iosT(language, "USER")
                                 )
                                 .font(.headline)
 
@@ -436,7 +441,7 @@ struct BlockedUsersIOSView: View {
                                 ProgressView()
                             } else {
                                 Button(
-                                    "Разблокировать"
+                                    iosT(language, "UNBLOCK")
                                 ) {
                                     pendingUnblock =
                                         user
@@ -458,7 +463,7 @@ struct BlockedUsersIOSView: View {
                 }
             }
             .navigationTitle(
-                "Заблокированные"
+                iosT(language, "BLOCKED_USERS")
             )
             .navigationBarTitleDisplayMode(
                 .inline
@@ -469,7 +474,7 @@ struct BlockedUsersIOSView: View {
                         .navigationBarTrailing
                 ) {
                     Button(
-                        "Готово"
+                        iosT(language, "READY")
                     ) {
                         dismiss()
                     }
@@ -478,7 +483,7 @@ struct BlockedUsersIOSView: View {
         }
         .navigationViewStyle(.stack)
         .confirmationDialog(
-            "Разблокировать пользователя?",
+            iosT(language, "UNBLOCK_USER_QUESTION"),
             isPresented: Binding(
                 get: {
                     pendingUnblock != nil
@@ -492,7 +497,7 @@ struct BlockedUsersIOSView: View {
             titleVisibility: .visible
         ) {
             Button(
-                "Разблокировать"
+                iosT(language, "UNBLOCK")
             ) {
                 guard
                     let user =
@@ -508,14 +513,14 @@ struct BlockedUsersIOSView: View {
             }
 
             Button(
-                "Отмена",
+                iosT(language, "CANCEL"),
                 role: .cancel
             ) {
                 pendingUnblock = nil
             }
         } message: {
             Text(
-                "Его объявления и чаты снова будут видны."
+                iosT(language, "UNBLOCKED_CONTENT_VISIBLE")
             )
         }
         .onAppear {
@@ -624,7 +629,7 @@ final class IOSSubmittedReportsViewModel:
         else {
             loading = false
             errorMessage =
-                "Пользователь не авторизован."
+                iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -680,6 +685,11 @@ final class IOSSubmittedReportsViewModel:
 struct SubmittedReportsIOSView: View {
     @StateObject private var viewModel =
         IOSSubmittedReportsViewModel()
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     @Environment(\.dismiss)
     private var dismiss
@@ -695,7 +705,7 @@ struct SubmittedReportsIOSView: View {
             Group {
                 if viewModel.loading {
                     ProgressView(
-                        "Загрузка…"
+                        iosT(language, "LOADING")
                     )
                 } else if let error =
                     viewModel.errorMessage
@@ -704,7 +714,7 @@ struct SubmittedReportsIOSView: View {
                         spacing: 14
                     ) {
                         Text(
-                            "Не удалось загрузить жалобы"
+                            iosT(language, "FAILED_TO_LOAD_REPORTS")
                         )
                         .font(.headline)
 
@@ -718,7 +728,7 @@ struct SubmittedReportsIOSView: View {
                             )
 
                         Button(
-                            "Повторить"
+                            iosT(language, "RETRY")
                         ) {
                             viewModel.start()
                         }
@@ -748,12 +758,12 @@ struct SubmittedReportsIOSView: View {
                         )
 
                         Text(
-                            "Жалоб пока нет"
+                            iosT(language, "NO_REPORTS_YET")
                         )
                         .font(.headline)
 
                         Text(
-                            "Отправленные жалобы и их статусы появятся здесь."
+                            iosT(language, "SUBMITTED_REPORTS_APPEAR_HERE")
                         )
                         .font(.footnote)
                         .foregroundStyle(
@@ -819,7 +829,11 @@ struct SubmittedReportsIOSView: View {
                                     .isEmpty
                             {
                                 Label(
-                                    "Объявление: \(shortId(report.announcementId))",
+                                    iosT(
+                                        language,
+                                        "LISTING_ID_LABEL",
+                                        shortId(report.announcementId)
+                                    ),
                                     systemImage:
                                         "rectangle.stack"
                                 )
@@ -835,7 +849,11 @@ struct SubmittedReportsIOSView: View {
                                     .isEmpty
                             {
                                 Label(
-                                    "Чат: \(shortId(report.chatId))",
+                                    iosT(
+                                        language,
+                                        "CHAT_ID_LABEL",
+                                        shortId(report.chatId)
+                                    ),
                                     systemImage:
                                         "bubble.left.and.bubble.right"
                                 )
@@ -851,7 +869,11 @@ struct SubmittedReportsIOSView: View {
                                     .isEmpty
                             {
                                 Label(
-                                    "Пользователь: \(shortId(report.reportedUserId))",
+                                    iosT(
+                                        language,
+                                        "USER_ID_LABEL",
+                                        shortId(report.reportedUserId)
+                                    ),
                                     systemImage:
                                         "person"
                                 )
@@ -870,7 +892,7 @@ struct SubmittedReportsIOSView: View {
                 }
             }
             .navigationTitle(
-                "Мои жалобы"
+                iosT(language, "MY_REPORTS")
             )
             .navigationBarTitleDisplayMode(
                 .inline
@@ -881,7 +903,7 @@ struct SubmittedReportsIOSView: View {
                         .navigationBarTrailing
                 ) {
                     Button(
-                        "Готово"
+                        iosT(language, "READY")
                     ) {
                         dismiss()
                     }
@@ -902,15 +924,15 @@ struct SubmittedReportsIOSView: View {
     ) -> String {
         switch reason.uppercased() {
         case "PROHIBITED_CONTENT":
-            return "Запрещённый контент"
+            return iosT(language, "PROHIBITED_CONTENT")
         case "FRAUD":
-            return "Мошенничество"
+            return iosT(language, "FRAUD")
         case "HARASSMENT":
-            return "Оскорбления или угрозы"
+            return iosT(language, "HARASSMENT_OR_THREATS")
         case "SPAM":
-            return "Спам"
+            return iosT(language, "SPAM")
         default:
-            return "Другое"
+            return iosT(language, "OTHER")
         }
     }
 
@@ -919,15 +941,15 @@ struct SubmittedReportsIOSView: View {
     ) -> String {
         switch status.uppercased() {
         case "OPEN":
-            return "На проверке"
+            return iosT(language, "REPORT_STATUS_OPEN")
         case "REVIEWING":
-            return "Рассматривается"
+            return iosT(language, "REPORT_STATUS_REVIEWING")
         case "RESOLVED":
-            return "Рассмотрена"
+            return iosT(language, "REPORT_STATUS_RESOLVED")
         case "REJECTED":
-            return "Отклонена"
+            return iosT(language, "REPORT_STATUS_REJECTED")
         case "CLOSED":
-            return "Закрыта"
+            return iosT(language, "REPORT_STATUS_CLOSED")
         default:
             return status
         }
@@ -962,7 +984,12 @@ struct SubmittedReportsIOSView: View {
             DateFormatter()
         formatter.locale =
             Locale(
-                identifier: "ru_RU"
+                identifier:
+                    language == .ru
+                        ? "ru_RU"
+                        : language == .ua
+                            ? "uk_UA"
+                            : "en_US"
             )
         formatter.dateStyle =
             .medium
