@@ -1174,8 +1174,8 @@ private struct SellerOrderCardIOS: View {
                         .font(.headline)
 
                     orderDetail(iosT(language, "FULL_NAME"), delivery.recipientName)
-                    orderDetail(iosT(language, "PHONE"), delivery.recipientPhone)
-                    orderDetail(iosT(language, "CITY"), delivery.recipientCity)
+                    orderDetail(iosT(language, "PHONE_LABEL"), delivery.recipientPhone)
+                    orderDetail(iosT(language, "CITY_LABEL"), delivery.recipientCity)
 
                     if !delivery.recipientArea.isEmpty {
                         orderDetail(iosT(language, "AREA"), delivery.recipientArea)
@@ -1185,7 +1185,7 @@ private struct SellerOrderCardIOS: View {
                         orderDetail(iosT(language, "INDEX"), delivery.recipientPostalCode)
                     }
 
-                    orderDetail(iosT(language, "BRANCH"), delivery.recipientDepartment)
+                    orderDetail(iosT(language, "BRANCH_LABEL"), delivery.recipientDepartment)
 
                     TextField(
                         trackingPlaceholder(order.deliveryService),
