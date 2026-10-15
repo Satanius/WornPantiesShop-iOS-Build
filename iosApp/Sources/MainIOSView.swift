@@ -401,6 +401,11 @@ struct MainIOSView: View {
     @State private var searchQuery = ""
     @State private var filters = IOSAnnouncementFilters()
     @State private var selectedAnnouncement: IOSAnnouncement?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -442,9 +447,22 @@ struct MainIOSView: View {
                 .searchable(
                     text: $searchQuery,
                     placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Поиск объявлений"
+                    prompt: iosT(
+                        language,
+                        "SEARCH_LISTINGS"
+                    )
                 )
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            languageRaw = language.next.rawValue
+                        } label: {
+                            Text(language.rawValue)
+                                .font(.caption.bold())
+                                .foregroundStyle(accentPink)
+                        }
+                    }
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             showFilters = true
@@ -511,7 +529,10 @@ struct MainIOSView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Объявления", systemImage: "house")
+                Label(
+                    iosT(language, "HOME"),
+                    systemImage: "house"
+                )
             }
             .tag(0)
 
@@ -521,17 +542,25 @@ struct MainIOSView: View {
                     emptyTitle: "Нет избранных объявлений",
                     emptyIcon: "heart"
                 )
-                .navigationTitle("Избранное")
+                .navigationTitle(
+                    iosT(language, "FAVORITES")
+                )
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Избранное", systemImage: "heart.fill")
+                Label(
+                    iosT(language, "FAVORITES"),
+                    systemImage: "heart.fill"
+                )
             }
             .tag(1)
 
             ChatsIOSView()
                 .tabItem {
-                    Label("Чаты", systemImage: "bubble.left.and.bubble.right")
+                    Label(
+                        iosT(language, "CHATS"),
+                        systemImage: "bubble.left.and.bubble.right"
+                    )
                 }
                 .badge(viewModel.totalUnreadCount)
                 .tag(2)
