@@ -91,7 +91,7 @@ private enum IOSOrderWorker {
                         domain: "Order",
                         code: 1,
                         userInfo: [
-                            NSLocalizedDescriptionKey: "Сначала войдите в аккаунт."
+                            NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "PLEASE_SIGN_IN_FIRST")
                         ]
                     )
                 )
@@ -112,7 +112,7 @@ private enum IOSOrderWorker {
                             domain: "Order",
                             code: 2,
                             userInfo: [
-                                NSLocalizedDescriptionKey: "Не удалось получить Firebase ID Token."
+                                NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "FAILED_TO_GET_FIREBASE_ID_TOKEN")
                             ]
                         )
                     )
@@ -130,7 +130,7 @@ private enum IOSOrderWorker {
                             domain: "Order",
                             code: 3,
                             userInfo: [
-                                NSLocalizedDescriptionKey: "Не удалось подготовить запрос."
+                                NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_REQUEST")
                             ]
                         )
                     )
@@ -164,7 +164,7 @@ private enum IOSOrderWorker {
                                 domain: "Order",
                                 code: 4,
                                 userInfo: [
-                                    NSLocalizedDescriptionKey: "Сервер не вернул HTTP-ответ."
+                                    NSLocalizedDescriptionKey: iosT(iosCurrentLanguage(), "SERVER_DID_NOT_RETURN_HTTP_RESPONSE")
                                 ]
                             )
                         )
@@ -178,7 +178,7 @@ private enum IOSOrderWorker {
 
                 if !(200...299).contains(http.statusCode) {
                     let message = json["error"] as? String
-                        ?? "Ошибка сервера \(http.statusCode)"
+                        ?? iosT(iosCurrentLanguage(), "SERVER_ERROR_HTTP", String(http.statusCode))
 
                     completion(
                         .failure(
@@ -196,7 +196,7 @@ private enum IOSOrderWorker {
 
                 if let success = json["success"] as? Bool, !success {
                     let message = json["error"] as? String
-                        ?? "Операция не выполнена."
+                        ?? iosT(iosCurrentLanguage(), "OPERATION_FAILED")
 
                     completion(
                         .failure(
@@ -230,7 +230,7 @@ private enum IOSOrderWorker {
                         code: 6,
                         userInfo: [
                             NSLocalizedDescriptionKey:
-                                "Фото должно быть не больше 400 КБ."
+                                iosT(iosCurrentLanguage(), "PHOTO_MUST_BE_UNDER_400KB")
                         ]
                     )
                 )
@@ -246,7 +246,7 @@ private enum IOSOrderWorker {
                         code: 7,
                         userInfo: [
                             NSLocalizedDescriptionKey:
-                                "Сначала войдите в аккаунт."
+                                iosT(iosCurrentLanguage(), "PLEASE_SIGN_IN_FIRST")
                         ]
                     )
                 )
@@ -268,7 +268,7 @@ private enum IOSOrderWorker {
                             code: 8,
                             userInfo: [
                                 NSLocalizedDescriptionKey:
-                                    "Не удалось получить Firebase ID Token."
+                                    iosT(iosCurrentLanguage(), "FAILED_TO_GET_FIREBASE_ID_TOKEN")
                             ]
                         )
                     )
@@ -284,7 +284,7 @@ private enum IOSOrderWorker {
                             code: 9,
                             userInfo: [
                                 NSLocalizedDescriptionKey:
-                                    "Некорректный адрес загрузки фото."
+                                    iosT(iosCurrentLanguage(), "INVALID_PHOTO_UPLOAD_URL")
                             ]
                         )
                     )
@@ -319,7 +319,7 @@ private enum IOSOrderWorker {
                                 code: 10,
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
-                                        "Сервер не вернул HTTP-ответ."
+                                        iosT(iosCurrentLanguage(), "SERVER_DID_NOT_RETURN_HTTP_RESPONSE")
                                 ]
                             )
                         )
@@ -341,7 +341,7 @@ private enum IOSOrderWorker {
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
                                         json["error"] as? String
-                                        ?? "Ошибка загрузки фото \(http.statusCode)"
+                                        ?? iosT(iosCurrentLanguage(), "PHOTO_UPLOAD_HTTP_ERROR", String(http.statusCode))
                                 ]
                             )
                         )
@@ -360,7 +360,7 @@ private enum IOSOrderWorker {
                                 code: 11,
                                 userInfo: [
                                     NSLocalizedDescriptionKey:
-                                        "Worker не вернул fileId."
+                                        iosT(iosCurrentLanguage(), "WORKER_DID_NOT_RETURN_FILE_ID")
                                 ]
                             )
                         )
@@ -395,7 +395,7 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
         stop()
 
         guard let uid = Auth.auth().currentUser?.uid else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -479,7 +479,7 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
                     )
 
                     guard let raw else {
-                        self.errorMessage = "Worker не вернул данные доставки."
+                        self.errorMessage = iosT(iosCurrentLanguage(), "WORKER_DID_NOT_RETURN_DELIVERY_DATA")
                         return
                     }
 
@@ -507,25 +507,25 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
             !info.cameraFingerprint.isEmpty
         else {
             errorMessage =
-                "У объявления нет данных проверки камеры."
+                iosT(iosCurrentLanguage(), "LISTING_HAS_NO_CAMERA_DATA")
             return
         }
 
         guard let exif = packagingPhotoExif(originalImageData) else {
             errorMessage =
-                "Фото отклонено: нужны EXIF-данные камеры и дата съёмки."
+                iosT(iosCurrentLanguage(), "PHOTO_REJECTED_EXIF_AND_DATE_REQUIRED")
             return
         }
 
         guard exif.cameraFingerprint == info.cameraFingerprint else {
             errorMessage =
-                "Фото отклонено: оно сделано другой камерой."
+                iosT(iosCurrentLanguage(), "PHOTO_REJECTED_DIFFERENT_CAMERA")
             return
         }
 
         guard let jpeg = preparePackagingJPEG(originalImageData) else {
             errorMessage =
-                "Не удалось подготовить фото до 400 КБ."
+                iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_PHOTO_400KB")
             return
         }
 
@@ -578,7 +578,7 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
             clean,
             service: order.deliveryService
         ) else {
-            errorMessage = "Проверьте номер отправления."
+            errorMessage = iosT(iosCurrentLanguage(), "CHECK_TRACKING_NUMBER")
             return
         }
 
@@ -688,7 +688,7 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
                         let data = document?.data()
                         let title = (data?["title"] as? String)
                             ?? (data?["titleKey"] as? String)
-                            ?? "Объявление"
+                            ?? iosT(iosCurrentLanguage(), "LISTING_2")
 
                         let country = data?["country"] as? String
                             ?? "UA"
@@ -725,7 +725,7 @@ private final class BuyerOrdersIOSViewModel: ObservableObject {
         stop()
 
         guard let uid = Auth.auth().currentUser?.uid else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -834,7 +834,7 @@ private final class BuyerOrdersIOSViewModel: ObservableObject {
                         let data = document?.data()
                         let title = (data?["title"] as? String)
                             ?? (data?["titleKey"] as? String)
-                            ?? "Объявление"
+                            ?? iosT(iosCurrentLanguage(), "LISTING_2")
 
                         let country = data?["country"] as? String
                             ?? "UA"
@@ -857,14 +857,19 @@ private final class BuyerOrdersIOSViewModel: ObservableObject {
 struct SellerOrdersIOSView: View {
     @StateObject private var viewModel = SellerOrdersIOSViewModel()
     @State private var packagingOrderForPicker: IOSOrder?
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         NavigationView {
             Group {
                 if viewModel.orders.isEmpty {
                     emptyState(
-                        text: "У вас пока нет заказов."
+                        text: iosT(language, "NO_ORDERS_YET")
                     )
                 } else {
                     ScrollView {
@@ -926,11 +931,11 @@ struct SellerOrdersIOSView: View {
                     }
                 }
             }
-            .navigationTitle("Мои заказы")
+            .navigationTitle(iosT(language, "MY_ORDERS"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") {
+                    Button(iosT(language, "CLOSE")) {
                         dismiss()
                     }
                 }
@@ -982,7 +987,12 @@ struct SellerOrdersIOSView: View {
 
 struct BuyerOrdersIOSView: View {
     @StateObject private var viewModel = BuyerOrdersIOSViewModel()
+    @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
 
     var body: some View {
         NavigationView {
@@ -993,7 +1003,7 @@ struct BuyerOrdersIOSView: View {
                             .font(.system(size: 42))
                             .foregroundStyle(.secondary)
 
-                        Text("У вас пока нет покупок.")
+                        Text(iosT(language, "YOU_DON_T_HAVE_ANY_PURCHASES_YET"))
                             .foregroundStyle(.secondary)
                     }
                 } else {
@@ -1020,11 +1030,11 @@ struct BuyerOrdersIOSView: View {
                     }
                 }
             }
-            .navigationTitle("Мои покупки")
+            .navigationTitle(iosT(language, "MY_PURCHASES"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") {
+                    Button(iosT(language, "CLOSE")) {
                         dismiss()
                     }
                 }
@@ -1055,6 +1065,11 @@ struct BuyerOrdersIOSView: View {
 
 private struct SellerOrderCardIOS: View {
     let order: IOSOrder
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
     let info: IOSOrderAnnouncementInfo?
     let delivery: IOSDeliveryDetails?
     @Binding var trackingInput: String
@@ -1070,12 +1085,12 @@ private struct SellerOrderCardIOS: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(info?.title ?? "Объявление")
+            Text(info?.title ?? iosT(iosCurrentLanguage(), "LISTING_2"))
                 .font(.headline)
                 .foregroundStyle(.white)
 
             Text(
-                "Наложенный платёж: "
+                iosT(language, "CASH_ON_DELIVERY") + " "
                     + formatPrice(
                         order.price,
                         country: info?.country ?? "UA"
@@ -1084,15 +1099,15 @@ private struct SellerOrderCardIOS: View {
             .fontWeight(.bold)
             .foregroundStyle(.green)
 
-            Text("Доставка: " + deliveryServiceName(order.deliveryService))
+            Text(iosT(language, "DELIVERY") + " " + deliveryServiceName(order.deliveryService))
                 .foregroundStyle(.secondary)
 
-            Text("Статус: " + orderStatusText(order.status))
+            Text(iosT(language, "STATUS") + " " + orderStatusText(order.status))
                 .fontWeight(.bold)
                 .foregroundStyle(orderStatusColor(order.status))
 
             if !order.trackingNumber.isEmpty {
-                Text("ТТН: " + order.trackingNumber)
+                Text(iosT(language, "TRACKING_NUMBER_3") + ": " + order.trackingNumber)
                     .fontWeight(.bold)
                     .foregroundStyle(.pink)
             }
@@ -1103,12 +1118,12 @@ private struct SellerOrderCardIOS: View {
             {
                 if order.packagingProofStatus == "WAITING_BUYER" {
                     Text(
-                        "Фото упаковки отправлено. Ожидается подтверждение покупателя."
+                        iosT(language, "PACKAGING_PHOTO_SENT_WAITING_FOR_BUYER_CONFIRMATION")
                     )
                     .font(.footnote)
                     .foregroundStyle(.yellow)
                 } else if order.packagingProofStatus == "CONFIRMED" {
-                    Text("Покупатель подтвердил упаковку.")
+                    Text(iosT(language, "BUYER_CONFIRMED_THE_PACKAGING"))
                         .font(.footnote)
                         .foregroundStyle(.green)
                 } else {
@@ -1119,7 +1134,7 @@ private struct SellerOrderCardIOS: View {
                             ProgressView()
                         } else {
                             Label(
-                                "Отправить фото упаковки",
+                                iosT(language, "SEND_PACKAGING_CONFIRMATION"),
                                 systemImage: "camera"
                             )
                         }
@@ -1137,13 +1152,13 @@ private struct SellerOrderCardIOS: View {
 
             if order.status == "PENDING_SELLER" {
                 HStack(spacing: 10) {
-                    Button("Отклонить") {
+                    Button(iosT(language, "REJECT")) {
                         onReject()
                     }
                     .buttonStyle(.bordered)
                     .disabled(actionLoading)
 
-                    Button("Принять") {
+                    Button(iosT(language, "ACCEPT")) {
                         onAccept()
                     }
                     .buttonStyle(.borderedProminent)
@@ -1155,22 +1170,22 @@ private struct SellerOrderCardIOS: View {
                 if let delivery {
                     Divider()
 
-                    Text("Получатель")
+                    Text(iosT(language, "RECIPIENT"))
                         .font(.headline)
 
-                    orderDetail("ФИО", delivery.recipientName)
-                    orderDetail("Телефон", delivery.recipientPhone)
-                    orderDetail("Город", delivery.recipientCity)
+                    orderDetail(iosT(language, "FULL_NAME"), delivery.recipientName)
+                    orderDetail(iosT(language, "PHONE"), delivery.recipientPhone)
+                    orderDetail(iosT(language, "CITY"), delivery.recipientCity)
 
                     if !delivery.recipientArea.isEmpty {
-                        orderDetail("Область", delivery.recipientArea)
+                        orderDetail(iosT(language, "AREA"), delivery.recipientArea)
                     }
 
                     if !delivery.recipientPostalCode.isEmpty {
-                        orderDetail("Индекс", delivery.recipientPostalCode)
+                        orderDetail(iosT(language, "INDEX"), delivery.recipientPostalCode)
                     }
 
-                    orderDetail("Отделение", delivery.recipientDepartment)
+                    orderDetail(iosT(language, "BRANCH"), delivery.recipientDepartment)
 
                     TextField(
                         trackingPlaceholder(order.deliveryService),
@@ -1183,7 +1198,7 @@ private struct SellerOrderCardIOS: View {
                             : .numberPad
                     )
 
-                    Button("Сохранить номер отправления") {
+                    Button(iosT(language, "SAVE_SHIPMENT_NUMBER")) {
                         onSaveTracking()
                     }
                     .buttonStyle(.borderedProminent)
@@ -1202,7 +1217,7 @@ private struct SellerOrderCardIOS: View {
                         if deliveryLoading {
                             ProgressView()
                         } else {
-                            Text("Показать данные получателя")
+                            Text(iosT(language, "SHOW_RECIPIENT_DETAILS"))
                         }
                     }
                     .buttonStyle(.bordered)
@@ -1214,7 +1229,7 @@ private struct SellerOrderCardIOS: View {
                 order.status == "CREATED",
                 order.trackingSource == "MANUAL"
             {
-                Button("Посылка отправлена") {
+                Button(iosT(language, "PARCEL_SHIPPED")) {
                     onMarkSent()
                 }
                 .buttonStyle(.borderedProminent)
@@ -1224,7 +1239,7 @@ private struct SellerOrderCardIOS: View {
                 )
 
                 if order.packagingProofStatus != "CONFIRMED" {
-                    Text("Сначала покупатель должен подтвердить фото упаковки.")
+                    Text(iosT(language, "BUYER_MUST_CONFIRM_PACKAGING_FIRST"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -1241,6 +1256,11 @@ private struct SellerOrderCardIOS: View {
 
 private struct BuyerOrderCardIOS: View {
     let order: IOSOrder
+    @AppStorage("appLanguage") private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
     let info: IOSOrderAnnouncementInfo?
     let isLoading: Bool
     let onConfirmReceived: () -> Void
@@ -1259,23 +1279,23 @@ private struct BuyerOrderCardIOS: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(info?.title ?? "Объявление")
+            Text(info?.title ?? iosT(iosCurrentLanguage(), "LISTING_2"))
                 .font(.headline)
                 .foregroundStyle(.white)
 
-            Text("Доставка: " + deliveryServiceName(order.deliveryService))
+            Text(iosT(language, "DELIVERY") + " " + deliveryServiceName(order.deliveryService))
                 .foregroundStyle(.secondary)
 
-            Text("Статус: " + orderStatusText(order.status))
+            Text(iosT(language, "STATUS") + " " + orderStatusText(order.status))
                 .fontWeight(.bold)
                 .foregroundStyle(orderStatusColor(order.status))
 
             if !order.trackingNumber.isEmpty {
-                Text("ТТН: " + order.trackingNumber)
+                Text(iosT(language, "TRACKING_NUMBER_3") + ": " + order.trackingNumber)
                     .fontWeight(.bold)
                     .foregroundStyle(.pink)
             } else {
-                Text("Номер отправления ещё не назначен.")
+                Text(iosT(language, "TRACKING_NUMBER_HAS_NOT_BEEN_ASSIGNED_YET"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -1286,7 +1306,7 @@ private struct BuyerOrderCardIOS: View {
             {
                 Divider()
 
-                Text("Проверьте фото упаковки")
+                Text(iosT(language, "CHECK_THE_PACKAGING_PHOTO"))
                     .font(.headline)
 
                 WorkerPhotoView(
@@ -1302,26 +1322,26 @@ private struct BuyerOrderCardIOS: View {
                     if isLoading {
                         ProgressView()
                     } else {
-                        Text("Подтвердить упаковку")
+                        Text(iosT(language, "CONFIRM_PACKAGING"))
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
                 .disabled(isLoading)
             } else if order.packagingProofStatus == "CONFIRMED" {
-                Text("✓ Упаковка подтверждена")
+                Text(iosT(language, "PACKAGING_CONFIRMED_CHECKMARK"))
                     .fontWeight(.bold)
                     .foregroundStyle(.green)
             }
 
             if order.status == "ARRIVED" {
-                Text("Посылка уже в отделении.")
+                Text(iosT(language, "PARCEL_ALREADY_AT_BRANCH"))
                     .font(.footnote)
                     .foregroundStyle(.yellow)
             }
 
             if order.status == "RETURNING" {
-                Text("Посылка возвращается продавцу.")
+                Text(iosT(language, "PARCEL_RETURNING_TO_SELLER"))
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
@@ -1333,14 +1353,14 @@ private struct BuyerOrderCardIOS: View {
                     if isLoading {
                         ProgressView()
                     } else {
-                        Text("Подтвердить получение")
+                        Text(iosT(language, "CONFIRM_RECEIPT"))
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
                 .disabled(isLoading)
             } else if order.status == "RECEIVED" {
-                Text("✓ Получено")
+                Text(iosT(language, "RECEIVED_CHECKMARK"))
                     .fontWeight(.bold)
                     .foregroundStyle(.green)
             }
@@ -1373,9 +1393,9 @@ private func orderDetail(
 private func deliveryServiceName(_ service: String) -> String {
     switch service {
     case "NovaPoshta":
-        return "Новая почта"
+        return iosT(iosCurrentLanguage(), "NOVA_POSHTA_RU_NAME")
     case "Ukrposhta":
-        return "Укрпочта"
+        return iosT(iosCurrentLanguage(), "UKRPOSHTA")
     case "Meest":
         return "Meest"
     default:
@@ -1386,27 +1406,27 @@ private func deliveryServiceName(_ service: String) -> String {
 private func orderStatusText(_ status: String) -> String {
     switch status {
     case "PENDING_SELLER":
-        return "Ожидает продавца"
+        return iosT(iosCurrentLanguage(), "AWAITING_SELLER")
     case "AWAITING_TTN":
-        return "Ожидает номер отправления"
+        return iosT(iosCurrentLanguage(), "AWAITING_SHIPMENT_NUMBER")
     case "CREATED":
-        return "Отправление создано"
+        return iosT(iosCurrentLanguage(), "SHIPMENT_CREATED")
     case "SENT":
-        return "Отправлено"
+        return iosT(iosCurrentLanguage(), "SHIPPED")
     case "IN_TRANSIT":
-        return "В пути"
+        return iosT(iosCurrentLanguage(), "IN_TRANSIT")
     case "ARRIVED":
-        return "Прибыло в отделение"
+        return iosT(iosCurrentLanguage(), "ARRIVED_AT_THE_PICKUP_POINT")
     case "RECEIVED":
-        return "Получено"
+        return iosT(iosCurrentLanguage(), "RECEIVED")
     case "REJECTED":
-        return "Отклонено"
+        return iosT(iosCurrentLanguage(), "REJECTED")
     case "RETURNING":
-        return "Возвращается"
+        return iosT(iosCurrentLanguage(), "RETURNING")
     case "RETURNED":
-        return "Возвращено"
+        return iosT(iosCurrentLanguage(), "RETURNED")
     case "CANCELLED":
-        return "Отменено"
+        return iosT(iosCurrentLanguage(), "CANCELLED")
     default:
         return status.isEmpty ? "—" : status
     }
@@ -1443,13 +1463,13 @@ private func formatPrice(
 private func trackingPlaceholder(_ service: String) -> String {
     switch service {
     case "NovaPoshta":
-        return "ТТН Новой почты"
+        return iosT(iosCurrentLanguage(), "TRACKING_NUMBER")
     case "Ukrposhta":
-        return "Трек-номер Укрпочты"
+        return iosT(iosCurrentLanguage(), "UKRPOSHTA_TRACKING_NUMBER")
     case "Meest":
-        return "Номер отправления Meest"
+        return iosT(iosCurrentLanguage(), "MEEST_SHIPMENT_NUMBER")
     default:
-        return "Номер отправления"
+        return iosT(iosCurrentLanguage(), "GENERIC_SHIPMENT_NUMBER")
     }
 }
 
