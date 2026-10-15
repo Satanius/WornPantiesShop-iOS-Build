@@ -391,29 +391,33 @@ struct AnnouncementDetailsIOSView: View {
                         return
                     }
 
-                    createInitialBuyMessage(
-                        firestore:
-                            firestore,
-                        chatDocument:
-                            chatDocument,
-                        chatId:
-                            chatId,
-                        buyerId:
-                            buyerId,
-                        sellerId:
-                            sellerId
-                    )
+                    DispatchQueue.main.async {
+                        createInitialBuyMessage(
+                            chatId:
+                                chatId,
+                            buyerId:
+                                buyerId,
+                            sellerId:
+                                sellerId
+                        )
+                    }
                 }
         }
     }
 
     private func createInitialBuyMessage(
-        firestore: Firestore,
-        chatDocument: DocumentReference,
         chatId: String,
         buyerId: String,
         sellerId: String
     ) {
+        let firestore =
+            Firestore.firestore()
+
+        let chatDocument =
+            firestore
+                .collection("chats")
+                .document(chatId)
+
         let text =
             "Здравствуйте! Я хочу купить этот товар."
 
@@ -469,6 +473,15 @@ struct AnnouncementDetailsIOSView: View {
                 messageDocument
         )
 
+        let messageId =
+            messageDocument.documentID
+
+        let announcementId =
+            item.id
+
+        let announcementTitle =
+            item.title
+
         batch.commit { error in
             DispatchQueue.main.async {
                 openingChat = false
@@ -483,8 +496,7 @@ struct AnnouncementDetailsIOSView: View {
                 sendInitialBuyPush(
                     chatId: chatId,
                     messageId:
-                        messageDocument
-                            .documentID
+                        messageId
                 )
 
                 openedChat =
@@ -493,9 +505,9 @@ struct AnnouncementDetailsIOSView: View {
                         buyerId: buyerId,
                         sellerId: sellerId,
                         announcementId:
-                            item.id,
+                            announcementId,
                         announcementTitle:
-                            item.title,
+                            announcementTitle,
                         lastMessage: text,
                         lastSenderId:
                             buyerId,
