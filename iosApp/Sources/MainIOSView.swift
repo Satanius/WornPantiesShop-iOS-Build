@@ -401,6 +401,7 @@ struct MainIOSView: View {
     @State private var searchQuery = ""
     @State private var filters = IOSAnnouncementFilters()
     @State private var selectedAnnouncement: IOSAnnouncement?
+    @State private var pendingChatId: String?
     @State private var pendingOrderId: String?
     @AppStorage("appLanguage") private var languageRaw = "RU"
 
@@ -556,7 +557,12 @@ struct MainIOSView: View {
             }
             .tag(1)
 
-            ChatsIOSView()
+            ChatsIOSView(
+                pendingChatId: pendingChatId,
+                onPendingChatConsumed: {
+                    pendingChatId = nil
+                }
+            )
                 .tabItem {
                     Label(
                         iosT(language, "CHATS"),
@@ -572,9 +578,11 @@ struct MainIOSView: View {
                 .requestPermissionAndSync()
 
             if
-                IOSPushNotifications
-                    .consumePendingChatId() != nil
+                let chatId = IOSPushNotifications
+                    .consumePendingChatId(),
+                !chatId.isEmpty
             {
+                pendingChatId = chatId
                 selectedTab = 2
             } else if
                 let orderId = IOSPushNotifications
@@ -589,7 +597,14 @@ struct MainIOSView: View {
                 .publisher(
                     for: .iosPushOpenChat
                 )
-        ) { _ in
+        ) { notification in
+            if
+                let chatId = notification.userInfo?["chatId"] as? String,
+                !chatId.isEmpty
+            {
+                pendingChatId = chatId
+            }
+
             selectedTab = 2
         }
         .onReceive(
