@@ -25,6 +25,10 @@ targets:
       path: Info.generated.plist
       properties:
         CFBundleDisplayName: WornPantiesShop
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.327586057169-7rkng6m9b0hhegc7h9hheuv7v4vfmobb
         UILaunchScreen: {}
     settings:
       base:
