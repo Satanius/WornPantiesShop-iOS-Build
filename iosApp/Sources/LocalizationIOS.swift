@@ -1605,7 +1605,7 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "Не вдалося заблокувати користувача.",
         en: "Failed to block user."
     ),
-    "LOADING": IOSLocalizedText(
+    "LOADING_PROGRESS": IOSLocalizedText(
         ru: "Загрузка…",
         ua: "Завантаження…",
         en: "Loading…"
@@ -1764,12 +1764,12 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "ПІБ",
         en: "Full name"
     ),
-    "PHONE": IOSLocalizedText(
+    "PHONE_LABEL": IOSLocalizedText(
         ru: "Телефон",
         ua: "Телефон",
         en: "Phone"
     ),
-    "CITY": IOSLocalizedText(
+    "CITY_LABEL": IOSLocalizedText(
         ru: "Город",
         ua: "Місто",
         en: "City"
@@ -1784,7 +1784,7 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "Індекс",
         en: "Postal code"
     ),
-    "BRANCH": IOSLocalizedText(
+    "BRANCH_LABEL": IOSLocalizedText(
         ru: "Отделение",
         ua: "Відділення",
         en: "Branch"
@@ -1903,7 +1903,7 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "Замовлення оформлено, але перше повідомлення не надіслалося: %s",
         en: "Order placed, but the first message was not sent: %s"
     ),
-    "CHECKOUT": IOSLocalizedText(
+    "CHECKOUT_SHORT": IOSLocalizedText(
         ru: "Оформление",
         ua: "Оформлення",
         en: "Checkout"
