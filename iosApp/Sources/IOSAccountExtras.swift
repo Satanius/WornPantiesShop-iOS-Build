@@ -214,11 +214,13 @@ struct IOSDisclaimerRulesView: View {
             .navigationTitle("Правила сервиса")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if let onClose {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if let onClose {
                         Button("Готово") {
                             onClose()
                         }
+                    } else {
+                        EmptyView()
                     }
                 }
             }
