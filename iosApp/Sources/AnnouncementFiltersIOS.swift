@@ -94,49 +94,56 @@ struct AnnouncementFiltersIOSView: View {
     @Environment(\.dismiss)
     private var dismiss
 
+    @AppStorage("appLanguage")
+    private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
+
     var body: some View {
         NavigationView {
             Form {
-                Section("Цвет") {
-                    Picker("Цвет", selection: $filters.filterColor) {
+                Section(iosT(language, "COLOR")) {
+                    Picker(iosT(language, "COLOR"), selection: $filters.filterColor) {
                         ForEach(IOSAnnouncementFilters.colors, id: \.self) { color in
-                            Text(color == "ALL" ? "Все" : color)
+                            Text(color == "ALL" ? iosT(language, "ALL") : color)
                                 .tag(color)
                         }
                     }
                 }
 
-                Section("Размер") {
-                    Picker("Размер", selection: $filters.filterSize) {
+                Section(iosT(language, "SIZE")) {
+                    Picker(iosT(language, "SIZE"), selection: $filters.filterSize) {
                         ForEach(IOSAnnouncementFilters.sizes, id: \.self) { size in
-                            Text(size == "ALL" ? "Все" : size)
+                            Text(size == "ALL" ? iosT(language, "ALL") : size)
                                 .tag(size)
                         }
                     }
                 }
 
-                Section("Цена, ₴") {
+                Section(iosT(language, "PRICE_UAH")) {
                     HStack {
-                        numberField("От", text: $filters.minPrice)
-                        numberField("До", text: $filters.maxPrice)
+                        numberField(iosT(language, "FROM"), text: $filters.minPrice)
+                        numberField(iosT(language, "TO"), text: $filters.maxPrice)
                     }
                 }
 
-                Section("Возраст модели") {
+                Section(iosT(language, "MODEL_AGE")) {
                     HStack {
-                        numberField("От", text: $filters.minAge)
-                        numberField("До", text: $filters.maxAge)
+                        numberField(iosT(language, "FROM"), text: $filters.minAge)
+                        numberField(iosT(language, "TO"), text: $filters.maxAge)
                     }
                 }
 
-                Section("Дополнительно") {
+                Section {
                     numberField(
-                        "Количество дней носки",
+                        iosT(language, "DAYS_WORN"),
                         text: $filters.daysWorn
                     )
 
                     Toggle(
-                        "Только от девственниц",
+                        iosT(language, "VIRGIN_ONLY"),
                         isOn: $filters.virginOnly
                     )
                 }
@@ -145,16 +152,16 @@ struct AnnouncementFiltersIOSView: View {
                     Button(role: .destructive) {
                         filters.reset()
                     } label: {
-                        Text("Сбросить фильтры")
+                        Text(iosT(language, "RESET"))
                             .frame(maxWidth: .infinity)
                     }
                 }
             }
-            .navigationTitle("Фильтры")
+            .navigationTitle(iosT(language, "FILTERS"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Готово") {
+                    Button(iosT(language, "APPLY")) {
                         dismiss()
                     }
                 }
