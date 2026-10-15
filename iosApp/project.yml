@@ -9,6 +9,9 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: "13.0.1"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS.git
+    from: "10.0.0"
 
 targets:
   WornPantiesShop:
@@ -18,14 +21,18 @@ targets:
       - path: Sources
       - path: Resources
         buildPhase: resources
+    info:
+      path: Info.generated.plist
+      properties:
+        CFBundleDisplayName: WornPantiesShop
+        UILaunchScreen: {}
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.satanius.wornpantiesshop
         PRODUCT_NAME: WornPantiesShop
         SWIFT_VERSION: 6.0
-        GENERATE_INFOPLIST_FILE: YES
+        GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_ENTITLEMENTS: WornPantiesShop.entitlements
-        INFOPLIST_KEY_CFBundleDisplayName: WornPantiesShop
         TARGETED_DEVICE_FAMILY: "1"
         FRAMEWORK_SEARCH_PATHS:
           - "$(inherited)"
@@ -41,3 +48,5 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseMessaging
+      - package: GoogleSignIn
+        product: GoogleSignIn
