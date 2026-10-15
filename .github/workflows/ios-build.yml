@@ -1,0 +1,106 @@
+name: Build iOS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "iosShared/**"
+      - "iosApp/**"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare diagnostics
+        run: mkdir -p iosApp/build
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Build Kotlin iOS framework
+        shell: bash
+        run: |
+          HOST_ARCH="$(uname -m)"
+
+          if [ "$HOST_ARCH" = "arm64" ]; then
+            KOTLIN_TARGET="IosSimulatorArm64"
+            FRAMEWORK_DIR="iosSimulatorArm64"
+          else
+            KOTLIN_TARGET="IosX64"
+            FRAMEWORK_DIR="iosX64"
+          fi
+
+          set -o pipefail
+          gradle -p iosShared "linkDebugFramework${KOTLIN_TARGET}" --stacktrace 2>&1 | tee iosApp/build/kotlin-framework.log
+
+          rm -rf iosApp/Frameworks
+          mkdir -p iosApp/Frameworks
+          cp -R "iosShared/build/bin/${FRAMEWORK_DIR}/debugFramework/Shared.framework"             "iosApp/Frameworks/Shared.framework"
+
+          echo "HOST_ARCH=$HOST_ARCH" >> "$GITHUB_ENV"
+
+      - name: Install XcodeGen
+        shell: bash
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+
+      - name: Generate Xcode project
+        shell: bash
+        run: |
+          set -o pipefail
+          cd iosApp
+          xcodegen generate 2>&1 | tee build/xcodegen.log
+
+      - name: Build iOS Simulator app
+        shell: bash
+        run: |
+          set -o pipefail
+
+          xcodebuild             -project iosApp/WornPantiesShop.xcodeproj             -scheme WornPantiesShop             -sdk iphonesimulator             -configuration Debug             -derivedDataPath iosApp/build             CODE_SIGNING_ALLOWED=NO             ONLY_ACTIVE_ARCH=YES             ARCHS="$HOST_ARCH"             build 2>&1 | tee iosApp/build/xcodebuild.log
+
+      - name: Upload iOS build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WornPantiesShop-iOS-Build-Logs
+          path: iosApp/build/*.log
+          if-no-files-found: ignore
+
+      - name: Package simulator app
+        shell: bash
+        run: |
+          APP_PATH="$(find iosApp/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -type d -name '*.app' | head -n 1)"
+
+          if [ -z "$APP_PATH" ]; then
+            echo "Simulator .app not found"
+            exit 1
+          fi
+
+          ditto             -c             -k             --sequesterRsrc             --keepParent             "$APP_PATH"             iosApp/build/WornPantiesShop-iOS-Simulator.zip
+
+      - name: Upload simulator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WornPantiesShop-iOS-Simulator
+          path: iosApp/build/WornPantiesShop-iOS-Simulator.zip
+          if-no-files-found: error
