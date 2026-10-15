@@ -93,6 +93,7 @@ private struct IOSChatMessage: Identifiable {
 private final class ChatsIOSViewModel: ObservableObject {
     @Published var chats: [IOSChatSummary] = []
     @Published var errorMessage: String?
+    @Published var deletingId: String?
 
     private var buyerChats: [String: IOSChatSummary] = [:]
     private var sellerChats: [String: IOSChatSummary] = [:]
@@ -200,6 +201,100 @@ private final class ChatsIOSViewModel: ObservableObject {
         blockedUsersListener = nil
     }
 
+    func deleteChat(_ chat: IOSChatSummary) {
+        guard deletingId == nil else {
+            return
+        }
+
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "Пользователь не авторизован."
+            return
+        }
+
+        deletingId = chat.id
+        errorMessage = nil
+
+        user.getIDTokenForcingRefresh(false) { [weak self] token, error in
+            if let error {
+                DispatchQueue.main.async {
+                    self?.deletingId = nil
+                    self?.errorMessage = error.localizedDescription
+                }
+                return
+            }
+
+            guard
+                let token,
+                let url = URL(
+                    string:
+                        "https://telegram-photo-storage.sataniusdarkc.workers.dev/chat/delete"
+                )
+            else {
+                DispatchQueue.main.async {
+                    self?.deletingId = nil
+                    self?.errorMessage = "Не удалось подготовить удаление чата."
+                }
+                return
+            }
+
+            let body = try? JSONSerialization.data(
+                withJSONObject: [
+                    "chatId": chat.id
+                ]
+            )
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.timeoutInterval = 30
+            request.httpBody = body
+            request.setValue(
+                "Bearer \(token)",
+                forHTTPHeaderField: "Authorization"
+            )
+            request.setValue(
+                "application/json",
+                forHTTPHeaderField: "Content-Type"
+            )
+
+            URLSession.shared
+                .dataTask(with: request) { data, response, networkError in
+                    let http = response as? HTTPURLResponse
+                    let json = data.flatMap {
+                        try? JSONSerialization.jsonObject(with: $0)
+                            as? [String: Any]
+                    } ?? [:]
+
+                    let success =
+                        networkError == nil
+                        && (200...299).contains(http?.statusCode ?? 0)
+                        && (json["success"] as? Bool) != false
+
+                    let message =
+                        networkError?.localizedDescription
+                        ?? (json["error"] as? String)
+                        ?? "Не удалось удалить чат."
+
+                    DispatchQueue.main.async {
+                        guard let self else { return }
+                        self.deletingId = nil
+
+                        if success {
+                            self.buyerChats.removeValue(
+                                forKey: chat.id
+                            )
+                            self.sellerChats.removeValue(
+                                forKey: chat.id
+                            )
+                            self.publish()
+                        } else {
+                            self.errorMessage = message
+                        }
+                    }
+                }
+                .resume()
+        }
+    }
+
     private func publish() {
         var merged = buyerChats
 
@@ -229,6 +324,7 @@ private final class ChatsIOSViewModel: ObservableObject {
 struct ChatsIOSView: View {
     @StateObject private var viewModel = ChatsIOSViewModel()
     @State private var selectedChat: IOSChatSummary?
+    @State private var deletingChat: IOSChatSummary?
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -308,6 +404,26 @@ struct ChatsIOSView: View {
                             .padding(.vertical, 5)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                deletingChat = chat
+                            } label: {
+                                Label(
+                                    "Удалить чат",
+                                    systemImage: "trash"
+                                )
+                            }
+                        }
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                deletingChat = chat
+                            } label: {
+                                Label(
+                                    "Удалить",
+                                    systemImage: "trash"
+                                )
+                            }
+                        }
                     }
                     .listStyle(.plain)
                 }
@@ -323,6 +439,22 @@ struct ChatsIOSView: View {
         }
         .sheet(item: $selectedChat) { chat in
             ChatConversationIOSView(chat: chat)
+        }
+        .alert(item: $deletingChat) { chat in
+            Alert(
+                title: Text("Удалить чат?"),
+                message: Text(
+                    "Чат и все сообщения будут удалены безвозвратно."
+                ),
+                primaryButton: .destructive(
+                    Text("Удалить")
+                ) {
+                    viewModel.deleteChat(chat)
+                },
+                secondaryButton: .cancel(
+                    Text("Отмена")
+                )
+            )
         }
     }
 }
