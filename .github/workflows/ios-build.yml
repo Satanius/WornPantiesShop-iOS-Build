@@ -57,7 +57,8 @@ jobs:
 
           rm -rf iosApp/Frameworks
           mkdir -p iosApp/Frameworks
-          cp -R "iosShared/build/bin/${FRAMEWORK_DIR}/debugFramework/Shared.framework"             "iosApp/Frameworks/Shared.framework"
+          cp -R "iosShared/build/bin/${FRAMEWORK_DIR}/debugFramework/Shared.framework" \
+            "iosApp/Frameworks/Shared.framework"
 
           echo "HOST_ARCH=$HOST_ARCH" >> "$GITHUB_ENV"
 
@@ -80,7 +81,90 @@ jobs:
         run: |
           set -o pipefail
 
-          xcodebuild             -project iosApp/WornPantiesShop.xcodeproj             -scheme WornPantiesShop             -sdk iphonesimulator             -configuration Debug             -derivedDataPath iosApp/build             CODE_SIGNING_ALLOWED=NO             ONLY_ACTIVE_ARCH=YES             ARCHS="$HOST_ARCH"             build 2>&1 | tee iosApp/build/xcodebuild.log
+          xcodebuild \
+            -project iosApp/WornPantiesShop.xcodeproj \
+            -scheme WornPantiesShop \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath iosApp/build \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS="$HOST_ARCH" \
+            build 2>&1 | tee iosApp/build/xcodebuild.log
+
+      - name: Smoke test in iOS Simulator
+        shell: bash
+        run: |
+          set +e
+
+          APP_PATH="$(find iosApp/build/Build/Products/Debug-iphonesimulator -maxdepth 1 -type d -name '*.app' | head -n 1)"
+          STATUS_FILE="iosApp/build/smoke-status.txt"
+          LAUNCH_LOG="iosApp/build/smoke-launch.log"
+          RUNTIME_LOG="iosApp/build/smoke-runtime.log"
+          SCREENSHOT="iosApp/build/smoke-screenshot.png"
+
+          : > "$STATUS_FILE"
+          : > "$LAUNCH_LOG"
+          : > "$RUNTIME_LOG"
+
+          if [ -z "$APP_PATH" ]; then
+            echo "app_found=false" | tee -a "$STATUS_FILE"
+            echo "Simulator .app not found" | tee -a "$LAUNCH_LOG"
+            exit 0
+          fi
+
+          echo "app_found=true" | tee -a "$STATUS_FILE"
+          echo "app_path=$APP_PATH" | tee -a "$STATUS_FILE"
+
+          DEVICE_UDID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /(Shutdown|Booted)/ {print $2; exit}')"
+
+          if [ -z "$DEVICE_UDID" ]; then
+            echo "simulator_found=false" | tee -a "$STATUS_FILE"
+            xcrun simctl list devices available >> "$LAUNCH_LOG" 2>&1
+            exit 0
+          fi
+
+          echo "simulator_found=true" | tee -a "$STATUS_FILE"
+          echo "device_udid=$DEVICE_UDID" | tee -a "$STATUS_FILE"
+
+          xcrun simctl boot "$DEVICE_UDID" >> "$LAUNCH_LOG" 2>&1 || true
+          xcrun simctl bootstatus "$DEVICE_UDID" -b >> "$LAUNCH_LOG" 2>&1
+          BOOT_EXIT=$?
+          echo "boot_exit=$BOOT_EXIT" | tee -a "$STATUS_FILE"
+
+          if [ "$BOOT_EXIT" -ne 0 ]; then
+            exit 0
+          fi
+
+          xcrun simctl install "$DEVICE_UDID" "$APP_PATH" >> "$LAUNCH_LOG" 2>&1
+          INSTALL_EXIT=$?
+          echo "install_exit=$INSTALL_EXIT" | tee -a "$STATUS_FILE"
+
+          if [ "$INSTALL_EXIT" -ne 0 ]; then
+            exit 0
+          fi
+
+          xcrun simctl launch "$DEVICE_UDID" com.satanius.wornpantiesshop >> "$LAUNCH_LOG" 2>&1
+          LAUNCH_EXIT=$?
+          echo "launch_exit=$LAUNCH_EXIT" | tee -a "$STATUS_FILE"
+
+          sleep 5
+
+          xcrun simctl io "$DEVICE_UDID" screenshot "$SCREENSHOT" >> "$LAUNCH_LOG" 2>&1
+          SCREENSHOT_EXIT=$?
+          echo "screenshot_exit=$SCREENSHOT_EXIT" | tee -a "$STATUS_FILE"
+
+          xcrun simctl spawn "$DEVICE_UDID" log show \
+            --style compact \
+            --last 2m \
+            --predicate 'process == "WornPantiesShop" OR eventMessage CONTAINS[c] "com.satanius.wornpantiesshop"' \
+            > "$RUNTIME_LOG" 2>&1 || true
+
+          if grep -Eqi 'Terminating app|uncaught exception|fatal error|SIGABRT|abort|GoogleService-Info|FirebaseApp.configure' "$RUNTIME_LOG" "$LAUNCH_LOG"; then
+            echo "runtime_crash_suspected=true" | tee -a "$STATUS_FILE"
+          else
+            echo "runtime_crash_suspected=false" | tee -a "$STATUS_FILE"
+          fi
 
       - name: Upload iOS build logs
         if: always()
@@ -88,6 +172,18 @@ jobs:
         with:
           name: WornPantiesShop-iOS-Build-Logs
           path: iosApp/build/*.log
+          if-no-files-found: ignore
+
+      - name: Upload simulator smoke test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WornPantiesShop-iOS-Smoke-Test
+          path: |
+            iosApp/build/smoke-status.txt
+            iosApp/build/smoke-launch.log
+            iosApp/build/smoke-runtime.log
+            iosApp/build/smoke-screenshot.png
           if-no-files-found: ignore
 
       - name: Package simulator app
@@ -100,7 +196,13 @@ jobs:
             exit 1
           fi
 
-          ditto             -c             -k             --sequesterRsrc             --keepParent             "$APP_PATH"             iosApp/build/WornPantiesShop-iOS-Simulator.zip
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            "$APP_PATH" \
+            iosApp/build/WornPantiesShop-iOS-Simulator.zip
 
       - name: Upload simulator build
         uses: actions/upload-artifact@v4
