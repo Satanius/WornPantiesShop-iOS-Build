@@ -627,6 +627,7 @@ private struct ProfileIOSView: View {
     @State private var showSellerOrders = false
     @State private var showBuyerOrders = false
     @State private var showMyListings = false
+    @State private var showBlockedUsers = false
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -688,6 +689,18 @@ private struct ProfileIOSView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(accentPink)
+
+                    Button {
+                        showBlockedUsers = true
+                    } label: {
+                        Label(
+                            "Заблокированные",
+                            systemImage: "person.crop.circle.badge.xmark"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(accentPink)
                 }
 
                 Spacer()
@@ -720,6 +733,9 @@ private struct ProfileIOSView: View {
         }
         .sheet(isPresented: $showBuyerOrders) {
             BuyerOrdersIOSView()
+        }
+        .sheet(isPresented: $showBlockedUsers) {
+            BlockedUsersIOSView()
         }
     }
 }
