@@ -628,6 +628,7 @@ private struct ProfileIOSView: View {
     @State private var showBuyerOrders = false
     @State private var showMyListings = false
     @State private var showBlockedUsers = false
+    @State private var showSubmittedReports = false
 
     private let accentPink = Color(
         red: 233.0 / 255.0,
@@ -701,6 +702,18 @@ private struct ProfileIOSView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(accentPink)
+
+                    Button {
+                        showSubmittedReports = true
+                    } label: {
+                        Label(
+                            "Мои жалобы",
+                            systemImage: "exclamationmark.bubble"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(accentPink)
                 }
 
                 Spacer()
@@ -736,6 +749,9 @@ private struct ProfileIOSView: View {
         }
         .sheet(isPresented: $showBlockedUsers) {
             BlockedUsersIOSView()
+        }
+        .sheet(isPresented: $showSubmittedReports) {
+            SubmittedReportsIOSView()
         }
     }
 }
