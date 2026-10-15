@@ -1,0 +1,5 @@
+iosApp/build/
+iosApp/Frameworks/
+iosApp/*.xcodeproj/
+iosShared/build/
+.DS_Store
