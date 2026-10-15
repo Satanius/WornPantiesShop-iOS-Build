@@ -27,12 +27,12 @@ private final class IOSBoostModel: ObservableObject {
         guard !loading else { return }
 
         guard [1, 3, 7].contains(days) else {
-            errorMessage = "Недопустимый срок поднятия."
+            errorMessage = iosT(iosCurrentLanguage(), "INVALID_BOOST_PERIOD")
             return
         }
 
         guard let user = Auth.auth().currentUser else {
-            errorMessage = "Пользователь не авторизован."
+            errorMessage = iosT(iosCurrentLanguage(), "USER_NOT_AUTHORIZED")
             return
         }
 
@@ -57,7 +57,7 @@ private final class IOSBoostModel: ObservableObject {
             else {
                 DispatchQueue.main.async {
                     self?.loading = false
-                    self?.errorMessage = "Не удалось подготовить оплату."
+                    self?.errorMessage = iosT(iosCurrentLanguage(), "FAILED_TO_PREPARE_PAYMENT")
                 }
                 return
             }
@@ -103,7 +103,7 @@ private final class IOSBoostModel: ObservableObject {
                     let message =
                         networkError?.localizedDescription
                         ?? (json["error"] as? String)
-                        ?? "Не удалось создать платёж."
+                        ?? iosT(iosCurrentLanguage(), "FAILED_TO_CREATE_PAYMENT")
 
                     DispatchQueue.main.async {
                         guard let self else { return }
@@ -137,40 +137,49 @@ struct IOSBoostView: View {
     @State
     private var selectedDays = 3
 
-    private let plans = [
-        IOSBoostPlan(
-            days: 1,
-            price: 100,
-            label: "1 день"
-        ),
-        IOSBoostPlan(
-            days: 3,
-            price: 200,
-            label: "3 дня · выгодно"
-        ),
-        IOSBoostPlan(
-            days: 7,
-            price: 350,
-            label: "7 дней · максимум"
-        )
-    ]
+    @AppStorage("appLanguage")
+    private var languageRaw = "RU"
+
+    private var language: IOSAppLanguage {
+        iosLanguage(from: languageRaw)
+    }
+
+    private var plans: [IOSBoostPlan] {
+        [
+            IOSBoostPlan(
+                days: 1,
+                price: 100,
+                label: iosT(language, "TEXT_1_DAY")
+            ),
+            IOSBoostPlan(
+                days: 3,
+                price: 200,
+                label: iosT(language, "TEXT_3_DAYS_BEST_VALUE")
+            ),
+            IOSBoostPlan(
+                days: 7,
+                price: 350,
+                label: iosT(language, "TEXT_7_DAYS_MAXIMUM")
+            )
+        ]
+    }
 
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Поднять объявление")
+                Text(iosT(language, "BOOST_LISTING"))
                     .font(.title2.bold())
 
                 Text(
                     announcement.title.isEmpty
-                        ? "Без названия"
+                        ? iosT(language, "UNTITLED")
                         : announcement.title
                 )
                 .foregroundStyle(.secondary)
 
                 if announcement.boostedUntil > currentMilliseconds {
                     Text(
-                        "Активно до "
+                        iosT(language, "ACTIVE_UNTIL") + " "
                         + boostDate(
                             announcement.boostedUntil
                         )
@@ -235,7 +244,7 @@ struct IOSBoostView: View {
                             ProgressView()
                         }
 
-                        Text("Перейти к оплате")
+                        Text(iosT(language, "GO_TO_PAYMENT"))
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -246,11 +255,11 @@ struct IOSBoostView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Продвижение")
+            .navigationTitle(iosT(language, "PROMOTION"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Закрыть") {
+                    Button(iosT(language, "CLOSE")) {
                         dismiss()
                     }
                 }
@@ -271,6 +280,14 @@ struct IOSBoostView: View {
         _ milliseconds: Int64
     ) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(
+            identifier:
+                language == .ru
+                    ? "ru_RU"
+                    : language == .ua
+                        ? "uk_UA"
+                        : "en_US"
+        )
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
 
