@@ -1080,10 +1080,18 @@ private struct ProfileIOSView: View {
             MyListingsIOSView()
         }
         .sheet(isPresented: $showSellerOrders) {
-            SellerOrdersIOSView()
+            SellerOrdersIOSView(
+                targetOrderId: pendingOrderId,
+                onTargetOrderConsumed:
+                    onPendingOrderConsumed
+            )
         }
         .sheet(isPresented: $showBuyerOrders) {
-            BuyerOrdersIOSView()
+            BuyerOrdersIOSView(
+                targetOrderId: pendingOrderId,
+                onTargetOrderConsumed:
+                    onPendingOrderConsumed
+            )
         }
         .sheet(isPresented: $showBlockedUsers) {
             BlockedUsersIOSView()
@@ -1163,7 +1171,6 @@ private struct ProfileIOSView: View {
                         showBuyerOrders = true
                     }
 
-                    onPendingOrderConsumed()
                 }
             }
     }
