@@ -855,10 +855,22 @@ private final class BuyerOrdersIOSViewModel: ObservableObject {
 }
 
 struct SellerOrdersIOSView: View {
+    let targetOrderId: String?
+    let onTargetOrderConsumed: () -> Void
+
     @StateObject private var viewModel = SellerOrdersIOSViewModel()
     @State private var packagingOrderForPicker: IOSOrder?
+    @State private var highlightedOrderId: String?
     @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    init(
+        targetOrderId: String? = nil,
+        onTargetOrderConsumed: @escaping () -> Void = {}
+    ) {
+        self.targetOrderId = targetOrderId
+        self.onTargetOrderConsumed = onTargetOrderConsumed
+    }
 
     private var language: IOSAppLanguage {
         iosLanguage(from: languageRaw)
@@ -872,10 +884,11 @@ struct SellerOrdersIOSView: View {
                         text: iosT(language, "NO_ORDERS_YET")
                     )
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.orders) { order in
-                                SellerOrderCardIOS(
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(viewModel.orders) { order in
+                                    SellerOrderCardIOS(
                                     order: order,
                                     info: viewModel.announcementInfo[
                                         order.announcementId
@@ -925,9 +938,36 @@ struct SellerOrdersIOSView: View {
                                         packagingOrderForPicker = order
                                     }
                                 )
+                                .id(order.id)
+                                .overlay {
+                                    if highlightedOrderId == order.id {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(
+                                                Color.pink,
+                                                lineWidth: 2
+                                            )
+                                    }
+                                }
                             }
+                            .padding(12)
                         }
-                        .padding(12)
+                        .onAppear {
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
+                        .onChange(
+                            of: viewModel.orders.map(\.id)
+                        ) { _ in
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
+                        .onChange(of: targetOrderId) { _ in
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
                     }
                 }
             }
@@ -972,6 +1012,31 @@ struct SellerOrdersIOSView: View {
         }
     }
 
+    private func openTargetOrderIfAvailable(
+        proxy: ScrollViewProxy
+    ) {
+        guard
+            let targetOrderId,
+            !targetOrderId.isEmpty,
+            viewModel.orders.contains(
+                where: { $0.id == targetOrderId }
+            )
+        else {
+            return
+        }
+
+        highlightedOrderId = targetOrderId
+
+        withAnimation {
+            proxy.scrollTo(
+                targetOrderId,
+                anchor: .center
+            )
+        }
+
+        onTargetOrderConsumed()
+    }
+
     @ViewBuilder
     private func emptyState(text: String) -> some View {
         VStack(spacing: 12) {
@@ -986,9 +1051,21 @@ struct SellerOrdersIOSView: View {
 }
 
 struct BuyerOrdersIOSView: View {
+    let targetOrderId: String?
+    let onTargetOrderConsumed: () -> Void
+
     @StateObject private var viewModel = BuyerOrdersIOSViewModel()
+    @State private var highlightedOrderId: String?
     @AppStorage("appLanguage") private var languageRaw = "RU"
     @Environment(\.dismiss) private var dismiss
+
+    init(
+        targetOrderId: String? = nil,
+        onTargetOrderConsumed: @escaping () -> Void = {}
+    ) {
+        self.targetOrderId = targetOrderId
+        self.onTargetOrderConsumed = onTargetOrderConsumed
+    }
 
     private var language: IOSAppLanguage {
         iosLanguage(from: languageRaw)
@@ -1007,10 +1084,11 @@ struct BuyerOrdersIOSView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(viewModel.orders) { order in
-                                BuyerOrderCardIOS(
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(viewModel.orders) { order in
+                                    BuyerOrderCardIOS(
                                     order: order,
                                     info: viewModel.announcementInfo[
                                         order.announcementId
@@ -1024,9 +1102,36 @@ struct BuyerOrdersIOSView: View {
                                         viewModel.confirmPackaging(order)
                                     }
                                 )
+                                .id(order.id)
+                                .overlay {
+                                    if highlightedOrderId == order.id {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(
+                                                Color.pink,
+                                                lineWidth: 2
+                                            )
+                                    }
+                                }
                             }
+                            .padding(12)
                         }
-                        .padding(12)
+                        .onAppear {
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
+                        .onChange(
+                            of: viewModel.orders.map(\.id)
+                        ) { _ in
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
+                        .onChange(of: targetOrderId) { _ in
+                            openTargetOrderIfAvailable(
+                                proxy: proxy
+                            )
+                        }
                     }
                 }
             }
@@ -1060,6 +1165,31 @@ struct BuyerOrdersIOSView: View {
         .onDisappear {
             viewModel.stop()
         }
+    }
+
+    private func openTargetOrderIfAvailable(
+        proxy: ScrollViewProxy
+    ) {
+        guard
+            let targetOrderId,
+            !targetOrderId.isEmpty,
+            viewModel.orders.contains(
+                where: { $0.id == targetOrderId }
+            )
+        else {
+            return
+        }
+
+        highlightedOrderId = targetOrderId
+
+        withAnimation {
+            proxy.scrollTo(
+                targetOrderId,
+                anchor: .center
+            )
+        }
+
+        onTargetOrderConsumed()
     }
 }
 
