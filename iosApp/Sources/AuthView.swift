@@ -193,20 +193,9 @@ struct AuthView: View {
     private func countryTitle(
         _ code: String
     ) -> String {
-        switch (language, code) {
-        case (.ua, "UA"):
-            return "Україна"
-        case (.en, "UA"):
-            return "Ukraine"
-        case (.ua, "RU"):
-            return "Росія"
-        case (.en, "RU"):
-            return "Russia"
-        case (_, "RU"):
-            return "Россия"
-        default:
-            return "Украина"
-        }
+        code == "RU"
+            ? iosT(language, "RUSSIA")
+            : iosT(language, "UKRAINE")
     }
 
     @MainActor
@@ -223,7 +212,7 @@ struct AuthView: View {
         else {
             loading = false
             errorMessage =
-                "Не удалось получить Google Client ID."
+                iosT(language, "FAILED_TO_GET_GOOGLE_CLIENT_ID")
             return
         }
 
@@ -233,7 +222,7 @@ struct AuthView: View {
         else {
             loading = false
             errorMessage =
-                "Не удалось открыть окно входа Google."
+                iosT(language, "FAILED_TO_OPEN_GOOGLE_SIGN_IN")
             return
         }
 
@@ -262,7 +251,7 @@ struct AuthView: View {
                 else {
                     loading = false
                     errorMessage =
-                        "Google не вернул ID-токен."
+                        iosT(language, "GOOGLE_TOKEN_WAS_NOT_RECEIVED")
                     return
                 }
 
@@ -299,7 +288,7 @@ struct AuthView: View {
                         else {
                             loading = false
                             errorMessage =
-                                "Не удалось получить ID пользователя."
+                                iosT(language, "FAILED_TO_GET_USER_ID")
                             return
                         }
 
@@ -405,12 +394,12 @@ struct AuthView: View {
         let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard isValidEmail(cleanEmail) else {
-            errorMessage = "Введите корректный Email."
+            errorMessage = iosT(language, "ENTER_A_VALID_EMAIL")
             return
         }
 
         guard password.count >= 6 else {
-            errorMessage = "Пароль должен содержать минимум 6 символов."
+            errorMessage = iosT(language, "PASSWORD_MUST_CONTAIN_AT_LEAST_6_CHARACTERS")
             return
         }
 
@@ -427,7 +416,7 @@ struct AuthView: View {
 
                 guard let uid = result?.user.uid else {
                     loading = false
-                    errorMessage = "Не удалось получить ID пользователя."
+                    errorMessage = iosT(language, "FAILED_TO_GET_USER_ID")
                     return
                 }
 
