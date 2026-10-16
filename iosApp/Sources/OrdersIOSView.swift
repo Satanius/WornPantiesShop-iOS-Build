@@ -1275,7 +1275,10 @@ private struct SellerOrderCardIOS: View {
                     .disabled(actionLoading)
 
                     Text(
-                        "Фото должно содержать EXIF камеры и быть сделано той же камерой, что использовалась для объявления."
+                        iosT(
+                            language,
+                            "PACKAGING_PHOTO_EXIF_SAME_CAMERA_HINT"
+                        )
                     )
                     .font(.footnote)
                     .foregroundStyle(.secondary)
