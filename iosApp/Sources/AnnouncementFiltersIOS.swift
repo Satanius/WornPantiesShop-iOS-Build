@@ -107,8 +107,12 @@ struct AnnouncementFiltersIOSView: View {
                 Section(iosT(language, "COLOR")) {
                     Picker(iosT(language, "COLOR"), selection: $filters.filterColor) {
                         ForEach(IOSAnnouncementFilters.colors, id: \.self) { color in
-                            Text(color == "ALL" ? iosT(language, "ALL") : color)
-                                .tag(color)
+                            Text(
+                                color == "ALL"
+                                    ? iosT(language, "ALL")
+                                    : localizedColorTitle(color)
+                            )
+                            .tag(color)
                         }
                     }
                 }
@@ -168,6 +172,27 @@ struct AnnouncementFiltersIOSView: View {
             }
         }
         .navigationViewStyle(.stack)
+    }
+
+    private func localizedColorTitle(
+        _ value: String
+    ) -> String {
+        switch value {
+        case "Черный":
+            return iosT(language, "COLOR_BLACK")
+        case "Красный":
+            return iosT(language, "COLOR_RED")
+        case "Розовый":
+            return iosT(language, "COLOR_PINK")
+        case "Белый":
+            return iosT(language, "COLOR_WHITE")
+        case "Синий":
+            return iosT(language, "COLOR_BLUE")
+        case "Другой":
+            return iosT(language, "COLOR_OTHER")
+        default:
+            return value
+        }
     }
 
     @ViewBuilder
