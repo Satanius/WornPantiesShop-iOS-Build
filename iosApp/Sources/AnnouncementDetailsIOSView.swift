@@ -883,6 +883,17 @@ private struct CheckoutIOSView: View {
             .textContentType(.telephoneNumber)
             .iosField()
 
+        if selectedDeliveryService == "Ukrposhta" {
+            Text(
+                iosT(
+                    checkoutLanguage,
+                    "THE_UKRPOSHTA_DIRECTORY_IS_UNAVAILABLE_ENTER_THE"
+                )
+            )
+            .font(.footnote)
+            .foregroundStyle(.orange)
+        }
+
         TextField(iosT(checkoutLanguage, "CITY_LOCALITY"), text: $recipientCity)
             .iosField()
 
