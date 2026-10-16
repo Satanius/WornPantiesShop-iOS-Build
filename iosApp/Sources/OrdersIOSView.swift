@@ -971,6 +971,7 @@ struct SellerOrdersIOSView: View {
                     }
                 }
             }
+        }
             .navigationTitle(iosT(language, "MY_ORDERS"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1135,6 +1136,7 @@ struct BuyerOrdersIOSView: View {
                     }
                 }
             }
+        }
             .navigationTitle(iosT(language, "MY_PURCHASES"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
