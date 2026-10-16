@@ -77,6 +77,38 @@ private final class ListingEditorModel: ObservableObject {
         photos.removeAll { $0.id == id }
     }
 
+    func movePhotoUp(_ id: UUID) {
+        guard
+            let index = photos.firstIndex(
+                where: { $0.id == id }
+            ),
+            index > 0
+        else {
+            return
+        }
+
+        photos.swapAt(
+            index,
+            index - 1
+        )
+    }
+
+    func movePhotoDown(_ id: UUID) {
+        guard
+            let index = photos.firstIndex(
+                where: { $0.id == id }
+            ),
+            index < photos.count - 1
+        else {
+            return
+        }
+
+        photos.swapAt(
+            index,
+            index + 1
+        )
+    }
+
     func save(country: String) {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -343,19 +375,100 @@ private struct ListingEditorForm: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
                                 ForEach(model.photos) { photo in
-                                    ZStack(alignment: .topTrailing) {
+                                    ZStack {
                                         Image(uiImage: photo.image)
                                             .resizable()
                                             .scaledToFill()
                                             .frame(width: 105, height: 105)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .clipShape(
+                                                RoundedRectangle(
+                                                    cornerRadius: 10
+                                                )
+                                            )
 
-                                        Button {
-                                            model.removePhoto(photo.id)
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .font(.system(size: 23))
-                                                .foregroundStyle(.white)
+                                        VStack {
+                                            HStack {
+                                                VStack(spacing: 4) {
+                                                    Button {
+                                                        model.movePhotoUp(
+                                                            photo.id
+                                                        )
+                                                    } label: {
+                                                        Image(
+                                                            systemName:
+                                                                "arrow.left.circle.fill"
+                                                        )
+                                                        .font(
+                                                            .system(
+                                                                size: 23
+                                                            )
+                                                        )
+                                                        .foregroundStyle(
+                                                            .white
+                                                        )
+                                                    }
+                                                    .accessibilityLabel(
+                                                        iosT(
+                                                            language,
+                                                            "UP"
+                                                        )
+                                                    )
+
+                                                    Button {
+                                                        model.movePhotoDown(
+                                                            photo.id
+                                                        )
+                                                    } label: {
+                                                        Image(
+                                                            systemName:
+                                                                "arrow.right.circle.fill"
+                                                        )
+                                                        .font(
+                                                            .system(
+                                                                size: 23
+                                                            )
+                                                        )
+                                                        .foregroundStyle(
+                                                            .white
+                                                        )
+                                                    }
+                                                    .accessibilityLabel(
+                                                        iosT(
+                                                            language,
+                                                            "DOWN"
+                                                        )
+                                                    )
+                                                }
+
+                                                Spacer()
+
+                                                Button {
+                                                    model.removePhoto(
+                                                        photo.id
+                                                    )
+                                                } label: {
+                                                    Image(
+                                                        systemName:
+                                                            "xmark.circle.fill"
+                                                    )
+                                                    .font(
+                                                        .system(
+                                                            size: 23
+                                                        )
+                                                    )
+                                                    .foregroundStyle(
+                                                        .white
+                                                    )
+                                                }
+                                                .accessibilityLabel(
+                                                    iosT(
+                                                        language,
+                                                        "DELETE"
+                                                    )
+                                                )
+                                            }
+
+                                            Spacer()
                                         }
                                         .padding(4)
                                     }
