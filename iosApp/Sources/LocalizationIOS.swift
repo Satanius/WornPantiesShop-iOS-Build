@@ -2152,6 +2152,25 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ru: "Ничего не найдено",
         ua: "Нічого не знайдено",
         en: "Nothing found"
+    ),    "RUSSIA": IOSLocalizedText(
+        ru: "Россия",
+        ua: "Росія",
+        en: "Russia"
+    ),
+    "FAILED_TO_GET_GOOGLE_CLIENT_ID": IOSLocalizedText(
+        ru: "Не удалось получить Google Client ID.",
+        ua: "Не вдалося отримати Google Client ID.",
+        en: "Failed to get Google Client ID."
+    ),
+    "FAILED_TO_OPEN_GOOGLE_SIGN_IN": IOSLocalizedText(
+        ru: "Не удалось открыть окно входа Google.",
+        ua: "Не вдалося відкрити вікно входу Google.",
+        en: "Failed to open Google sign-in."
+    ),
+    "PACKAGING_PHOTO_EXIF_SAME_CAMERA_HINT": IOSLocalizedText(
+        ru: "Фото должно содержать EXIF камеры и быть сделано той же камерой, что использовалась для объявления.",
+        ua: "Фото має містити EXIF камери та бути зроблене тією самою камерою, що використовувалася для оголошення.",
+        en: "The photo must contain camera EXIF data and be taken with the same camera used for the listing."
     ),
 ]
 
