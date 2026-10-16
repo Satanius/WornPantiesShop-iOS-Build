@@ -1167,7 +1167,7 @@ struct ChatConversationIOSView: View {
             )
         }
         .onChange(of: moderation.message) { message in
-            if message == "Пользователь заблокирован." {
+            if message == iosT(language, "USER_BLOCKED") {
                 dismiss()
             }
         }
