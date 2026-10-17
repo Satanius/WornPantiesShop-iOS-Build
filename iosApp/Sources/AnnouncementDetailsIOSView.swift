@@ -135,7 +135,7 @@ struct AnnouncementDetailsIOSView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .disabled(isOwnAnnouncement)
 
-                    if item.country != "UA" {
+                    if !["UA", "RU"].contains(item.country) {
                         Text(iosT(language, "AUTO_DELIVERY_ONLY_UKRAINE"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
@@ -794,7 +794,10 @@ private struct CheckoutIOSView: View {
         self.onOrderPlaced = onOrderPlaced
 
         _selectedDeliveryService = State(
-            initialValue: item.deliveryServices.first ?? ""
+            initialValue:
+                item.country == "RU"
+                    ? "CDEK"
+                    : item.deliveryServices.first ?? ""
         )
     }
 
@@ -809,7 +812,7 @@ private struct CheckoutIOSView: View {
                         .font(.headline)
                         .foregroundStyle(.green)
 
-                    if item.country != "UA" {
+                    if !["UA", "RU"].contains(item.country) {
                         Text(iosT(checkoutLanguage, "AUTOMATIC_SHIPPING_IS_NOT_YET_AVAILABLE_FOR"))
                             .foregroundStyle(.red)
                     } else {
@@ -868,7 +871,7 @@ private struct CheckoutIOSView: View {
             .foregroundStyle(accentPink)
 
         Picker(iosT(checkoutLanguage, "DELIVERY_SERVICE"), selection: $selectedDeliveryService) {
-            ForEach(item.deliveryServices, id: \.self) { service in
+            ForEach(availableDeliveryServices, id: \.self) { service in
                 Text(deliveryName(service)).tag(service)
             }
         }
@@ -878,7 +881,12 @@ private struct CheckoutIOSView: View {
             .textContentType(.name)
             .iosField()
 
-        TextField(iosT(checkoutLanguage, "PHONE_EXAMPLE"), text: $recipientPhone)
+        TextField(
+            item.country == "RU"
+                ? iosT(checkoutLanguage, "PHONE") + " +7..."
+                : iosT(checkoutLanguage, "PHONE_EXAMPLE"),
+            text: $recipientPhone
+        )
             .keyboardType(.phonePad)
             .textContentType(.telephoneNumber)
             .iosField()
@@ -911,7 +919,9 @@ private struct CheckoutIOSView: View {
                 ? iosT(checkoutLanguage, "MEEST_BRANCH_NUMBER_LONG")
                 : selectedDeliveryService == "Ukrposhta"
                     ? iosT(checkoutLanguage, "UKRPOSHTA_BRANCH")
-                    : iosT(checkoutLanguage, "NOVA_POSHTA_BRANCH_PARCEL_LOCKER"),
+                    : selectedDeliveryService == "CDEK"
+                        ? iosT(checkoutLanguage, "BRANCH") + " CDEK"
+                        : iosT(checkoutLanguage, "NOVA_POSHTA_BRANCH_PARCEL_LOCKER"),
             text: $recipientDepartment
         )
         .iosField()
@@ -923,12 +933,28 @@ private struct CheckoutIOSView: View {
         .tint(accentPink)
     }
 
+    private var availableDeliveryServices: [String] {
+        let countryServices =
+            item.country == "RU"
+                ? ["CDEK"]
+                : ["NovaPoshta", "Ukrposhta", "Meest"]
+
+        let selected =
+            item.deliveryServices.filter {
+                countryServices.contains($0)
+            }
+
+        return selected.isEmpty
+            ? countryServices
+            : selected
+    }
+
     private var canSubmit: Bool {
-        item.country == "UA"
+        ["UA", "RU"].contains(item.country)
             && !submitting
             && rulesAccepted
             && !selectedDeliveryService.isEmpty
-            && item.deliveryServices.contains(selectedDeliveryService)
+            && availableDeliveryServices.contains(selectedDeliveryService)
             && !recipientName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !recipientPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !recipientCity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
