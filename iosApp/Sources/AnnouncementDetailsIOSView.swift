@@ -877,6 +877,17 @@ private struct CheckoutIOSView: View {
         }
         .pickerStyle(.menu)
 
+        if selectedDeliveryService == "CDEK" {
+            Text(
+                iosT(
+                    checkoutLanguage,
+                    "ENTER_THE_CITY_AND_CDEK_PICKUP_POINT"
+                )
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+
         TextField(iosT(checkoutLanguage, "RECIPIENTS_FULL_NAME"), text: $recipientName)
             .textContentType(.name)
             .iosField()
@@ -920,7 +931,7 @@ private struct CheckoutIOSView: View {
                 : selectedDeliveryService == "Ukrposhta"
                     ? iosT(checkoutLanguage, "UKRPOSHTA_BRANCH")
                     : selectedDeliveryService == "CDEK"
-                        ? iosT(checkoutLanguage, "BRANCH") + " CDEK"
+                        ? iosT(checkoutLanguage, "CDEK_PICKUP_POINT")
                         : iosT(checkoutLanguage, "NOVA_POSHTA_BRANCH_PARCEL_LOCKER"),
             text: $recipientDepartment
         )
