@@ -11,7 +11,16 @@ private let listingWorkerURL = "https://telegram-photo-storage.sataniusdarkc.wor
 private let listingTypes = ["Шортики", "Стринги", "Танга", "Бикини", "Слипы", "Бразилиана", "Кружевные", "Другое"]
 private let listingSizes = ["XS", "S", "M", "L", "XL"]
 private let listingColors = ["Черный", "Красный", "Розовый", "Белый", "Синий", "Другой"]
-private let listingDeliveryServices = ["NovaPoshta", "Ukrposhta", "Meest"]
+private let ukraineListingDeliveryServices = ["NovaPoshta", "Ukrposhta", "Meest"]
+private let russiaListingDeliveryServices = ["CDEK"]
+
+private func listingDeliveryServices(
+    for country: String
+) -> [String] {
+    country == "RU"
+        ? russiaListingDeliveryServices
+        : ukraineListingDeliveryServices
+}
 
 private struct ListingPhoto: Identifiable {
     let id = UUID()
@@ -49,7 +58,11 @@ private final class ListingEditorModel: ObservableObject {
         type = listingTypes.contains(announcement?.type ?? "") ? announcement!.type : listingTypes[0]
         size = listingSizes.contains(announcement?.size ?? "") ? announcement!.size : "M"
         color = listingColors.contains(announcement?.color ?? "") ? announcement!.color : listingColors[0]
-        deliveryServices = Set(announcement?.deliveryServices ?? listingDeliveryServices)
+        let initialCountry = announcement?.country ?? "UA"
+        let availableServices = listingDeliveryServices(for: initialCountry)
+        let existingServices = announcement?.deliveryServices ?? availableServices
+        let validServices = existingServices.filter { availableServices.contains($0) }
+        deliveryServices = Set(validServices.isEmpty ? availableServices : validServices)
     }
 
     var isEditing: Bool {
@@ -129,12 +142,13 @@ private final class ListingEditorModel: ObservableObject {
             errorMessage = iosT(iosCurrentLanguage(), "ENTER_A_VALID_NUMBER_OF_DAYS")
             return
         }
-        guard !deliveryServices.isEmpty else {
+        let availableServices = listingDeliveryServices(for: country)
+        let orderedServices = availableServices.filter { deliveryServices.contains($0) }
+
+        guard !orderedServices.isEmpty else {
             errorMessage = iosT(iosCurrentLanguage(), "SELECT_AT_LEAST_ONE_DELIVERY_SERVICE")
             return
         }
-
-        let orderedServices = listingDeliveryServices.filter { deliveryServices.contains($0) }
         let editableData: [String: Any] = [
             "title": cleanTitle,
             "description": cleanDescription,
@@ -248,6 +262,7 @@ struct AddAnnouncementIOSView: View {
         ListingEditorForm(
             title: iosT(language, "NEW_LISTING"),
             model: model,
+            country: country,
             showPhotos: $showPhotos,
             onCancel: { dismiss() },
             onSave: {
@@ -292,6 +307,7 @@ struct EditAnnouncementIOSView: View {
         ListingEditorForm(
             title: iosT(language, "EDITING"),
             model: model,
+            country: announcement.country,
             showPhotos: $unusedPhotoSheet,
             onCancel: { dismiss() },
             onSave: {
@@ -310,6 +326,7 @@ struct EditAnnouncementIOSView: View {
 private struct ListingEditorForm: View {
     let title: String
     @ObservedObject var model: ListingEditorModel
+    let country: String
     @Binding var showPhotos: Bool
     let onCancel: () -> Void
     let onSave: () -> Void
@@ -340,7 +357,7 @@ private struct ListingEditorForm: View {
                         .font(.headline)
                         .foregroundStyle(.pink)
 
-                    ForEach(listingDeliveryServices, id: \.self) { service in
+                    ForEach(listingDeliveryServices(for: country), id: \.self) { service in
                         Toggle(
                             deliveryName(service),
                             isOn: Binding(
@@ -517,6 +534,25 @@ private struct ListingEditorForm: View {
             }
         }
         .navigationViewStyle(.stack)
+        .onAppear {
+            let availableServices =
+                listingDeliveryServices(
+                    for: country
+                )
+
+            let validServices =
+                model.deliveryServices.filter {
+                    availableServices.contains($0)
+                }
+
+            if validServices.isEmpty {
+                model.deliveryServices =
+                    Set(availableServices)
+            } else if Set(validServices) != model.deliveryServices {
+                model.deliveryServices =
+                    Set(validServices)
+            }
+        }
     }
 }
 
