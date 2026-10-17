@@ -628,7 +628,7 @@ private final class SellerOrdersIOSViewModel: ObservableObject {
             return clean.count == 13
                 && clean.allSatisfy { $0.isNumber }
 
-        case "Meest":
+        case "Meest", "CDEK":
             return (5...50).contains(clean.count)
                 && clean.allSatisfy { $0.isLetter || $0.isNumber }
 
@@ -1328,7 +1328,7 @@ private struct SellerOrderCardIOS: View {
                     )
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(
-                        order.deliveryService == "Meest"
+                        ["Meest", "CDEK"].contains(order.deliveryService)
                             ? .asciiCapable
                             : .numberPad
                     )
@@ -1603,6 +1603,8 @@ private func trackingPlaceholder(_ service: String) -> String {
         return iosT(iosCurrentLanguage(), "UKRPOSHTA_TRACKING_NUMBER")
     case "Meest":
         return iosT(iosCurrentLanguage(), "MEEST_SHIPMENT_NUMBER")
+    case "CDEK":
+        return iosT(iosCurrentLanguage(), "CDEK_TRACKING_NUMBER")
     default:
         return iosT(iosCurrentLanguage(), "GENERIC_SHIPMENT_NUMBER")
     }
