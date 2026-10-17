@@ -1033,7 +1033,7 @@ private struct CheckoutIOSView: View {
 
             let body: [String: Any] = [
                 "announcementId": item.id,
-                "com/example/wornpantiesshop/delivery": delivery
+                "delivery": delivery
             ]
 
             guard
