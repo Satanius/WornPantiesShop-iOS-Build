@@ -511,6 +511,11 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ua: "Вкажіть місто та номер відділення Meest.",
         en: "Enter the city and Meest branch number."
     ),
+    "ENTER_THE_CITY_AND_CDEK_PICKUP_POINT": IOSLocalizedText(
+        ru: "Укажите город и пункт выдачи CDEK.",
+        ua: "Вкажіть місто та пункт видачі CDEK.",
+        en: "Enter the city and CDEK pickup point."
+    ),
     "THE_UKRPOSHTA_DIRECTORY_IS_UNAVAILABLE_ENTER_THE": IOSLocalizedText(
         ru: "Справочник Укрпочты недоступен. Введите город, индекс и отделение вручную.",
         ua: "Довідник Укрпошти недоступний. Введіть місто, індекс і відділення вручну.",
@@ -560,6 +565,11 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ru: "№ отделения Meest",
         ua: "№ відділення Meest",
         en: "Meest branch number"
+    ),
+    "CDEK_PICKUP_POINT": IOSLocalizedText(
+        ru: "Пункт выдачи CDEK",
+        ua: "Пункт видачі CDEK",
+        en: "CDEK pickup point"
     ),
     "NOVA_POSHTA_BRANCH_PARCEL_LOCKER": IOSLocalizedText(
         ru: "Отделение / почтомат Новой почты",
@@ -690,6 +700,11 @@ private let iosTranslations: [String: IOSLocalizedText] = [
         ru: "Номер отправления Meest",
         ua: "Номер відправлення Meest",
         en: "Meest shipment number"
+    ),
+    "CDEK_TRACKING_NUMBER": IOSLocalizedText(
+        ru: "Трек-номер CDEK",
+        ua: "Трек-номер CDEK",
+        en: "CDEK tracking number"
     ),
     "TRACKING_NUMBER_2": IOSLocalizedText(
         ru: "Трек-номер",
