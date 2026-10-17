@@ -66,7 +66,10 @@ struct IOSAnnouncement: Identifiable {
                 .compactMap { $0 as? String }
                 .filter { !$0.isEmpty }
         } else {
-            deliveryServices = ["NovaPoshta", "Ukrposhta", "Meest"]
+            deliveryServices =
+                country == "RU"
+                    ? ["CDEK"]
+                    : ["NovaPoshta", "Ukrposhta", "Meest"]
         }
 
         createdAt = IOSAnnouncement.int64Value(data["createdAt"])
